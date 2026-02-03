@@ -1,0 +1,184 @@
+"""
+Main Flask Application Entry Point
+ERP System
+"""
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from flask_jwt_extended import JWTManager
+from flask_bcrypt import Bcrypt
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from dotenv import load_dotenv
+import os
+
+# Load environment variables
+load_dotenv()
+
+# Initialize Flask app
+app = Flask(__name__)
+
+# Configuration
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'dev-jwt-secret')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = int(os.getenv('JWT_ACCESS_TOKEN_EXPIRES', 3600))
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ECHO'] = os.getenv('DEBUG', '0') == '1'
+
+# Initialize extensions
+CORS(app, resources={r"/api/*": {"origins": os.getenv('CORS_ORIGINS', '*').split(',')}})
+jwt = JWTManager(app)
+bcrypt = Bcrypt(app)
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"]
+)
+
+# Import database
+from config.database import db, init_db
+
+# Initialize database
+init_db(app)
+
+# Import blueprints
+from app.routes.auth import auth_bp
+from app.routes.users import users_bp
+from app.routes.dashboard import dashboard_bp
+from app.routes.projects import projects_bp
+from app.routes.tasks import tasks_bp
+from app.routes.schedule import schedule_bp
+from app.routes.time_tracking import time_tracking_bp
+from app.routes.customers import customers_bp
+from app.routes.leads import leads_bp
+from app.routes.opportunities import opportunities_bp
+from app.routes.products import products_bp
+from app.routes.inventory import inventory_bp
+from app.routes.sales import sales_bp
+from app.routes.procurement import procurement_bp
+from app.routes.suppliers import suppliers_bp
+from app.routes.accounting import accounting_bp
+from app.routes.invoices import invoices_bp
+from app.routes.payments import payments_bp
+from app.routes.expenses import expenses_bp
+from app.routes.hr import hr_bp
+from app.routes.tickets import tickets_bp
+from app.routes.reports import reports_bp
+from app.routes.notifications import notifications_bp
+from app.routes.documents import documents_bp
+from app.routes.settings import settings_bp
+from app.routes.logs import logs_bp
+
+# Register blueprints
+app.register_blueprint(auth_bp, url_prefix='/api/auth')
+app.register_blueprint(users_bp, url_prefix='/api/users')
+app.register_blueprint(dashboard_bp, url_prefix='/api/dashboard')
+app.register_blueprint(projects_bp, url_prefix='/api/projects')
+app.register_blueprint(tasks_bp, url_prefix='/api/tasks')
+app.register_blueprint(schedule_bp, url_prefix='/api/schedule')
+app.register_blueprint(time_tracking_bp, url_prefix='/api/time-tracking')
+app.register_blueprint(customers_bp, url_prefix='/api/customers')
+app.register_blueprint(leads_bp, url_prefix='/api/leads')
+app.register_blueprint(opportunities_bp, url_prefix='/api/opportunities')
+app.register_blueprint(products_bp, url_prefix='/api/products')
+app.register_blueprint(inventory_bp, url_prefix='/api/inventory')
+app.register_blueprint(sales_bp, url_prefix='/api/sales')
+app.register_blueprint(procurement_bp, url_prefix='/api/procurement')
+app.register_blueprint(suppliers_bp, url_prefix='/api/suppliers')
+app.register_blueprint(accounting_bp, url_prefix='/api/accounting')
+app.register_blueprint(invoices_bp, url_prefix='/api/invoices')
+app.register_blueprint(payments_bp, url_prefix='/api/payments')
+app.register_blueprint(expenses_bp, url_prefix='/api/expenses')
+app.register_blueprint(hr_bp, url_prefix='/api/hr')
+app.register_blueprint(tickets_bp, url_prefix='/api/tickets')
+app.register_blueprint(reports_bp, url_prefix='/api/reports')
+app.register_blueprint(notifications_bp, url_prefix='/api/notifications')
+app.register_blueprint(documents_bp, url_prefix='/api/documents')
+app.register_blueprint(settings_bp, url_prefix='/api/settings')
+app.register_blueprint(logs_bp, url_prefix='/api/logs')
+
+# Error handlers
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'error': 'Not found', 'message': str(error)}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({'error': 'Internal server error', 'message': str(error)}), 500
+
+@app.errorhandler(401)
+def unauthorized(error):
+    return jsonify({'error': 'Unauthorized', 'message': 'Authentication required'}), 401
+
+@app.errorhandler(403)
+def forbidden(error):
+    return jsonify({'error': 'Forbidden', 'message': 'Insufficient permissions'}), 403
+
+# Root route
+@app.route('/')
+def index():
+    return jsonify({
+        'name': 'ERP System API',
+        'version': '1.0.0',
+        'status': 'running',
+        'endpoints': {
+            'auth': '/api/auth',
+            'users': '/api/users',
+            'dashboard': '/api/dashboard',
+            'projects': '/api/projects',
+            'tasks': '/api/tasks',
+            'schedule': '/api/schedule',
+            'time_tracking': '/api/time-tracking',
+            'customers': '/api/customers',
+            'leads': '/api/leads',
+            'opportunities': '/api/opportunities',
+            'products': '/api/products',
+            'inventory': '/api/inventory',
+            'sales': '/api/sales',
+            'procurement': '/api/procurement',
+            'suppliers': '/api/suppliers',
+            'accounting': '/api/accounting',
+            'invoices': '/api/invoices',
+            'payments': '/api/payments',
+            'expenses': '/api/expenses',
+            'hr': '/api/hr',
+            'tickets': '/api/tickets',
+            'reports': '/api/reports',
+            'notifications': '/api/notifications',
+            'documents': '/api/documents',
+            'settings': '/api/settings',
+            'logs': '/api/logs'
+        }
+    })
+
+# Health check
+@app.route('/api/health')
+def health():
+    return jsonify({'status': 'healthy', 'database': 'connected'}), 200
+
+# Database test
+@app.route('/api/db-test')
+def db_test():
+    try:
+        # Test database connection
+        from sqlalchemy import text
+        result = db.session.execute(text('SELECT 1'))
+        return jsonify({'database': 'connected', 'test': 'passed'}), 200
+    except Exception as e:
+        return jsonify({'database': 'error', 'message': str(e)}), 500
+
+# JWT error handlers
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    return jsonify({'error': 'Token has expired', 'message': 'Please log in again'}), 401
+
+@jwt.invalid_token_loader
+def invalid_token_callback(error):
+    return jsonify({'error': 'Invalid token', 'message': str(error)}), 401
+
+@jwt.unauthorized_loader
+def missing_token_callback(error):
+    return jsonify({'error': 'Authorization required', 'message': 'No token provided'}), 401
+
+if __name__ == '__main__':
+    app.run(debug=os.getenv('DEBUG', '0') == '1', host='0.0.0.0', port=5000)
