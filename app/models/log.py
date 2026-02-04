@@ -20,5 +20,5 @@ class SystemLog(db.Model):
     log_level = db.Column(db.String(20))
     module = db.Column(db.String(100))
     message = db.Column(db.Text)
-    metadata = db.Column(JSONB)
+    extra_data = db.Column(JSONB)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
