@@ -62,37 +62,57 @@
         <!-- Navigation -->
         <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
             
-            <div class="px-3 mb-2 mt-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Core</div>
+            <div class="px-3 mb-2 mt-4 text-xs font-bold text-gray-400 uppercase tracking-wider">General</div>
             <a href="/dashboard" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'dashboard' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
                 <i class="fas fa-home w-5 text-center"></i> Dashboard
             </a>
             <a href="/tools" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'tools' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
                 <i class="fas fa-toolbox w-5 text-center"></i> Tools
             </a>
+
+            <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">CRM & Sales</div>
+            <a href="/customers" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'customers' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-users w-5 text-center"></i> Customers
+            </a>
+            <a href="/leads" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'leads' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-filter w-5 text-center"></i> Leads
+            </a>
+            <a href="/opportunities" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'opportunities' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-bullseye w-5 text-center"></i> Opportunities
+            </a>
+             <a href="/quotations" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'quotations' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-file-contract w-5 text-center"></i> Quotations
+            </a>
+            <a href="/sales" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'sales' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-shopping-cart w-5 text-center"></i> Sales Orders
+            </a>
+
+            <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Project Management</div>
             <a href="/projects" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'projects' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
                 <i class="fas fa-project-diagram w-5 text-center"></i> Projects
             </a>
             <a href="/tasks" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'tasks' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
                 <i class="fas fa-tasks w-5 text-center"></i> Tasks
             </a>
-
-            <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Business</div>
-            <a href="/sales" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'sales' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
-                <i class="fas fa-chart-line w-5 text-center"></i> Sales
-            </a>
-            <a href="/customers" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'customers' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
-                <i class="fas fa-users w-5 text-center"></i> Customers
-            </a>
-             <a href="/quotations" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'quotations' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
-                <i class="fas fa-file-contract w-5 text-center"></i> Quotations
+            <a href="/tickets" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'tickets' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-headset w-5 text-center"></i> Support Tickets
             </a>
 
-            <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Inventory</div>
+            <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Inventory & Supply</div>
             <a href="/products" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'products' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
                 <i class="fas fa-box w-5 text-center"></i> Products
             </a>
             <a href="/inventory" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'inventory' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
-                <i class="fas fa-boxes w-5 text-center"></i> Inventory
+                <i class="fas fa-boxes w-5 text-center"></i> Stock Levels
+            </a>
+            <a href="/warehouses" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'warehouses' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-warehouse w-5 text-center"></i> Warehouses
+            </a>
+            <a href="/procurement" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'procurement' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-cart-shopping w-5 text-center"></i> Procurement
+            </a>
+            <a href="/suppliers" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'suppliers' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-truck-field w-5 text-center"></i> Suppliers
             </a>
 
             <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Finance</div>
@@ -105,16 +125,31 @@
             <a href="/accounting" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'accounting' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
                 <i class="fas fa-calculator w-5 text-center"></i> Accounting
             </a>
+            <a href="/journal_entries" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'journal_entries' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-book w-5 text-center"></i> Journal Entries
+            </a>
 
-            <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">HR & Admin</div>
+            <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">HR</div>
             <a href="/hr" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'hr' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
-                <i class="fas fa-user-tie w-5 text-center"></i> HR
+                <i class="fas fa-user-tie w-5 text-center"></i> Employees
+            </a>
+            <a href="/attendance" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'attendance' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-clock w-5 text-center"></i> Attendance
+            </a>
+            <a href="/leaves" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'leaves' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-calendar-minus w-5 text-center"></i> Leaves
+            </a>
+
+            <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Administration</div>
+            <a href="/reports" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'reports' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-chart-pie w-5 text-center"></i> Reports
             </a>
             <a href="/users" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'users' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
-                <i class="fas fa-user-shield w-5 text-center"></i> Users
+                <i class="fas fa-user-shield w-5 text-center"></i> System Users
             </a>
-
-            <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">System</div>
+            <a href="/logs" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'logs' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-terminal w-5 text-center"></i> System Logs
+            </a>
             <a href="/settings" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'settings' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
                 <i class="fas fa-cog w-5 text-center"></i> Settings
             </a>
@@ -122,18 +157,18 @@
 
         <!-- User Profile -->
         <div class="p-4 border-t border-gray-200">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-sm">
-                    AD
+            <a href="/profile" class="flex items-center gap-3 group">
+                <div class="w-9 h-9 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-sm group-hover:bg-primary-200 transition-colors" id="nav-user-avatar">
+                    ?
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-slate-900 truncate">Admin User</p>
-                    <p class="text-xs text-slate-500 truncate">admin@erp.com</p>
+                    <p class="text-sm font-medium text-slate-900 truncate group-hover:text-primary-600 transition-colors" id="nav-user-name">Loading...</p>
+                    <p class="text-xs text-slate-500 truncate" id="nav-user-email">...</p>
                 </div>
-                <button id="logout-btn" class="text-slate-400 hover:text-red-500 transition-colors">
+                <button id="logout-btn" class="text-slate-400 hover:text-red-500 transition-colors" onclick="event.preventDefault(); handleLogout();">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
-            </div>
+            </a>
         </div>
     </aside>
 
@@ -144,14 +179,28 @@
             <h1 class="text-xl font-semibold text-slate-800">{{ title }}</h1>
             
             <div class="flex items-center gap-4">
-                <div class="relative">
+                <div class="relative hidden sm:block">
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                    <input type="text" placeholder="Search..." class="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent w-64 transition-all">
+                    <input type="text" placeholder="Search..." class="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent w-48 lg:w-64 transition-all">
                 </div>
-                <button class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-slate-500 transition-colors relative">
-                    <i class="fas fa-bell"></i>
-                    <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+                
+                <a href="/tools" class="hidden md:flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                    <i class="fas fa-toolbox"></i> Tools
+                </a>
+
+                <button onclick="window.openCreateModal('projects')" class="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all shadow-sm hover:shadow-md text-sm font-semibold">
+                    <i class="fas fa-plus"></i> <span class="hidden sm:inline">New Record</span>
                 </button>
+
+                <div class="flex items-center gap-2">
+                    <button class="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-slate-500 transition-colors relative">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+                    </button>
+                    <a href="/profile" class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-primary-100 hover:text-primary-700 transition-all" title="View Profile">
+                        <i class="fas fa-user-circle text-lg"></i>
+                    </a>
+                </div>
             </div>
         </header>
 

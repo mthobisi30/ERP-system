@@ -23,21 +23,94 @@
         </button>
 
         <!-- Inventory Push -->
-        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all text-left group opacity-60">
-            <div class="w-12 h-12 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center mb-4">
+        <button onclick="openModal('stock-modal')" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all text-left group">
+            <div class="w-12 h-12 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <i class="fas fa-boxes text-xl"></i>
             </div>
             <h3 class="font-semibold text-gray-900">Stock Adjuster</h3>
-            <p class="text-sm text-gray-500 mt-1">Coming soon.</p>
-        </div>
+            <p class="text-sm text-gray-500 mt-1">Adjust inventory levels across warehouses.</p>
+        </button>
 
         <!-- Expense Logger -->
-        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all text-left group opacity-60">
-            <div class="w-12 h-12 bg-green-50 text-green-600 rounded-lg flex items-center justify-center mb-4">
+        <button onclick="openModal('expense-modal')" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all text-left group">
+            <div class="w-12 h-12 bg-green-50 text-green-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <i class="fas fa-receipt text-xl"></i>
             </div>
             <h3 class="font-semibold text-gray-900">Expense Logger</h3>
-            <p class="text-sm text-gray-500 mt-1">Coming soon.</p>
+            <p class="text-sm text-gray-500 mt-1">Record business expenses and upload receipts.</p>
+        </button>
+    </div>
+
+    <!-- Stock Modal -->
+    <div id="stock-modal" class="fixed inset-0 bg-gray-900/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
+                <h3 class="text-lg font-bold text-gray-900">Stock Adjustment</h3>
+                <button onclick="closeModal('stock-modal')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="stock-form" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Product SKU</label>
+                    <input type="text" name="sku" class="w-full px-3 py-2 border rounded-lg" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                        <input type="number" name="quantity" class="w-full px-3 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                        <select name="type" class="w-full px-3 py-2 border rounded-lg">
+                            <option value="in">Restock (+)</option>
+                            <option value="out">Removal (-)</option>
+                            <option value="adjustment">Internal Adj.</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="closeModal('stock-modal')" class="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Update Stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Expense Modal -->
+    <div id="expense-modal" class="fixed inset-0 bg-gray-900/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
+                <h3 class="text-lg font-bold text-gray-900">Log Expense</h3>
+                <button onclick="closeModal('expense-modal')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="expense-form" class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <input type="text" name="description" class="w-full px-3 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2 text-gray-400">$</span>
+                            <input type="number" name="amount" class="w-full pl-7 pr-3 py-2 border rounded-lg" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <select name="category" class="w-full px-3 py-2 border rounded-lg">
+                            <option>Office Supplies</option>
+                            <option>Travel</option>
+                            <option>Equipment</option>
+                            <option>Utilities</option>
+                            <option>Marketing</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="closeModal('expense-modal')" class="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Log Expense</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -70,7 +143,7 @@
                             <div class="col-span-1 flex items-center justify-center text-gray-400"><i class="fas fa-trash"></i></div>
                         </div>
                     </div>
-                    <button type="button" class="mt-3 text-sm text-primary-600 font-medium hover:underline">+ Add Item</button>
+                    <button type="button" onclick="addInvoiceItem()" class="mt-3 text-sm text-primary-600 font-medium hover:underline">+ Add Item</button>
                 </div>
 
                 <div class="flex justify-end gap-3">
@@ -110,7 +183,7 @@
                             <div class="col-span-1 flex items-center justify-center text-gray-400"><i class="fas fa-trash"></i></div>
                         </div>
                     </div>
-                    <button type="button" class="mt-3 text-sm text-primary-600 font-medium hover:underline">+ Add Item</button>
+                    <button type="button" onclick="addQuoteItem()" class="mt-3 text-sm text-primary-600 font-medium hover:underline">+ Add Item</button>
                 </div>
 
                 <div class="flex justify-end gap-3">
@@ -126,16 +199,30 @@
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
     
-    // Simple logic for the demo, naturally this would connect to the API in app.js
-    document.getElementById('invoice-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        alert('Invoice Created! (Mock)');
-        closeModal('invoice-modal');
-    });
-    document.getElementById('quote-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        alert('Quote Generated! (Mock)');
-        closeModal('quote-modal');
-    });
+    function addInvoiceItem() {
+        const container = document.getElementById('invoice-items');
+        const div = document.createElement('div');
+        div.className = 'grid grid-cols-12 gap-2 mt-2';
+        div.innerHTML = `
+            <div class="col-span-6"><input type="text" name="item_description" placeholder="Description" class="w-full px-3 py-2 border rounded-lg text-sm" required></div>
+            <div class="col-span-2"><input type="number" name="item_qty" placeholder="Qty" class="w-full px-3 py-2 border rounded-lg text-sm" required></div>
+            <div class="col-span-3"><input type="number" name="item_price" placeholder="Price" class="w-full px-3 py-2 border rounded-lg text-sm" required></div>
+            <div class="col-span-1 flex items-center justify-center text-gray-400 cursor-pointer hover:text-red-500" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></div>
+        `;
+        container.appendChild(div);
+    }
+
+    function addQuoteItem() {
+        const container = document.getElementById('quote-items');
+        const div = document.createElement('div');
+        div.className = 'grid grid-cols-12 gap-2 mt-2';
+        div.innerHTML = `
+            <div class="col-span-6"><input type="text" name="item_description" placeholder="Product/Service" class="w-full px-3 py-2 border rounded-lg text-sm" required></div>
+            <div class="col-span-2"><input type="number" name="item_qty" placeholder="Qty" class="w-full px-3 py-2 border rounded-lg text-sm" required></div>
+            <div class="col-span-3"><input type="number" name="item_price" placeholder="Est. Price" class="w-full px-3 py-2 border rounded-lg text-sm" required></div>
+            <div class="col-span-1 flex items-center justify-center text-gray-400 cursor-pointer hover:text-red-500" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></div>
+        `;
+        container.appendChild(div);
+    }
 </script>
 {% endblock %}

@@ -7,10 +7,7 @@
 
 <!-- Config for JS to know what to load -->
 <script>
-    window.PAGE_CONFIG = {
-        type: 'list',
-        endpoint: '{{ api_endpoint }}',
-        key: '{{ view_key }}'
-    };
+    const API_ENDPOINT = '{{ api_endpoint }}';
+    const VIEW_KEY = '{{ view_key }}';
 </script>
 {% endblock %}

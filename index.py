@@ -135,6 +135,10 @@ def dashboard_page():
 def tools_page():
     return render_template('tools.html', title='Tools & Generators', active_view='tools', api_endpoint=None, view_key=None)
 
+@app.route('/profile')
+def profile_page():
+    return render_template('profile.html', title='User Profile', active_view='profile', api_endpoint='/auth/me', view_key='user')
+
 # Generic route for all list views
 @app.route('/<view_name>')
 def list_view(view_name):
