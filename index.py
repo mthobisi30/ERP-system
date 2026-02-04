@@ -145,7 +145,7 @@ def dashboard_page():
 
 @app.route('/tools')
 def tools_page():
-    return render_template('tools.html', title='Tools & Generators', active_view='tools', api_endpoint=None, view_key=None)
+    return render_template('tools.html', title='Tools & Generators', active_view='tools', api_endpoint='', view_key='')
 
 @app.route('/profile')
 def profile_page():
@@ -153,7 +153,7 @@ def profile_page():
 
 @app.route('/settings')
 def settings_page():
-    return render_template('settings.html', title='System Settings', active_view='settings', api_endpoint=None, view_key=None)
+    return render_template('settings.html', title='System Settings', active_view='settings', api_endpoint='', view_key='')
 
 # Generic route for all list views
 @app.route('/<view_name>')
@@ -222,7 +222,7 @@ def create_page(module_name):
         'time-tracking': 'Time Entry', 'payments': 'Payment', 'notifications': 'Notification', 'reports': 'Report'
     }
     title = VIEW_TITLES.get(module_name, module_name.replace('-', ' ').replace('_', ' ').title())
-    return render_template('create.html', title=title, view_name=module_name, active_view=module_name, api_endpoint=None, view_key=None)
+    return render_template('create.html', title=title, view_name=module_name, active_view=module_name, api_endpoint='', view_key='')
 
 # API Documentation / Health
 @app.route('/api')
