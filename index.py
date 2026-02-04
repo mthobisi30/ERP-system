@@ -149,7 +149,7 @@ def tools_page():
 
 @app.route('/profile')
 def profile_page():
-    return render_template('profile.html', title='User Profile', active_view='profile', api_endpoint='/auth/me', view_key='user')
+    return render_template('profile.html', title='User Profile', active_view='profile', api_endpoint='', view_key='user')
 
 @app.route('/settings')
 def settings_page():

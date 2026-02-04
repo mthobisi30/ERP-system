@@ -684,3 +684,13 @@ window.openModal = function(modalId) {
     }
 }
 
+async function initProfile() {
+    if (document.getElementById('profile-container')) {
+        try {
+            const user = await fetchData('/auth/me');
+            if (user) renderProfile(user);
+        } catch(e) { console.error(e); }
+    }
+}
+document.addEventListener('DOMContentLoaded', initProfile);
+
