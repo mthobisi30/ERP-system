@@ -1,0 +1,141 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Tools Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Invoice Generator -->
+        <button onclick="openModal('invoice-modal')" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all text-left group">
+            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <i class="fas fa-file-invoice-dollar text-xl"></i>
+            </div>
+            <h3 class="font-semibold text-gray-900">Invoice Generator</h3>
+            <p class="text-sm text-gray-500 mt-1">Create and send professional invoices.</p>
+        </button>
+
+        <!-- Quote Builder -->
+        <button onclick="openModal('quote-modal')" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all text-left group">
+            <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <i class="fas fa-file-contract text-xl"></i>
+            </div>
+            <h3 class="font-semibold text-gray-900">Quote Builder</h3>
+            <p class="text-sm text-gray-500 mt-1">Generate sales quotations instantly.</p>
+        </button>
+
+        <!-- Inventory Push -->
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all text-left group opacity-60">
+            <div class="w-12 h-12 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center mb-4">
+                <i class="fas fa-boxes text-xl"></i>
+            </div>
+            <h3 class="font-semibold text-gray-900">Stock Adjuster</h3>
+            <p class="text-sm text-gray-500 mt-1">Coming soon.</p>
+        </div>
+
+        <!-- Expense Logger -->
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all text-left group opacity-60">
+            <div class="w-12 h-12 bg-green-50 text-green-600 rounded-lg flex items-center justify-center mb-4">
+                <i class="fas fa-receipt text-xl"></i>
+            </div>
+            <h3 class="font-semibold text-gray-900">Expense Logger</h3>
+            <p class="text-sm text-gray-500 mt-1">Coming soon.</p>
+        </div>
+    </div>
+
+    <!-- Invoice Modal -->
+    <div id="invoice-modal" class="fixed inset-0 bg-gray-900/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
+                <h3 class="text-lg font-bold text-gray-900">New Invoice</h3>
+                <button onclick="closeModal('invoice-modal')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="invoice-form" class="p-6 space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Client Name</label>
+                        <input type="text" name="client_name" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500" required>
+                    </div>
+                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                        <input type="date" name="due_date" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500" required>
+                    </div>
+                </div>
+
+                <div class="border-t border-b border-gray-100 py-4">
+                    <h4 class="text-sm font-semibold text-gray-900 mb-3">Line Items</h4>
+                    <div id="invoice-items" class="space-y-3">
+                        <div class="grid grid-cols-12 gap-2">
+                            <div class="col-span-6"><input type="text" placeholder="Description" class="w-full px-3 py-2 border rounded-lg text-sm" required></div>
+                            <div class="col-span-2"><input type="number" placeholder="Qty" class="w-full px-3 py-2 border rounded-lg text-sm" required></div>
+                            <div class="col-span-3"><input type="number" placeholder="Price" class="w-full px-3 py-2 border rounded-lg text-sm" required></div>
+                            <div class="col-span-1 flex items-center justify-center text-gray-400"><i class="fas fa-trash"></i></div>
+                        </div>
+                    </div>
+                    <button type="button" class="mt-3 text-sm text-primary-600 font-medium hover:underline">+ Add Item</button>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('invoice-modal')" class="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 shadow-sm">Create Invoice</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Quote Modal -->
+    <div id="quote-modal" class="fixed inset-0 bg-gray-900/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
+                <h3 class="text-lg font-bold text-gray-900">New Quotation</h3>
+                <button onclick="closeModal('quote-modal')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="quote-form" class="p-6 space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Prospect Name</label>
+                        <input type="text" name="client_name" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500" required>
+                    </div>
+                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Valid Until</label>
+                        <input type="date" name="valid_until" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500" required>
+                    </div>
+                </div>
+
+                <div class="border-t border-b border-gray-100 py-4">
+                    <h4 class="text-sm font-semibold text-gray-900 mb-3">Items</h4>
+                    <div id="quote-items" class="space-y-3">
+                        <div class="grid grid-cols-12 gap-2">
+                            <div class="col-span-6"><input type="text" placeholder="Product/Service" class="w-full px-3 py-2 border rounded-lg text-sm" required></div>
+                            <div class="col-span-2"><input type="number" placeholder="Qty" class="w-full px-3 py-2 border rounded-lg text-sm" required></div>
+                            <div class="col-span-3"><input type="number" placeholder="Est. Price" class="w-full px-3 py-2 border rounded-lg text-sm" required></div>
+                            <div class="col-span-1 flex items-center justify-center text-gray-400"><i class="fas fa-trash"></i></div>
+                        </div>
+                    </div>
+                    <button type="button" class="mt-3 text-sm text-primary-600 font-medium hover:underline">+ Add Item</button>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('quote-modal')" class="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 shadow-sm">Generate Quote</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
+    
+    // Simple logic for the demo, naturally this would connect to the API in app.js
+    document.getElementById('invoice-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('Invoice Created! (Mock)');
+        closeModal('invoice-modal');
+    });
+    document.getElementById('quote-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('Quote Generated! (Mock)');
+        closeModal('quote-modal');
+    });
+</script>
+{% endblock %}

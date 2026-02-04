@@ -186,9 +186,16 @@ function renderDashboard(data) {
 
 // Init
 document.addEventListener('DOMContentLoaded', async () => {
-    // Login Page
+    // Login Page Handler
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
+        return;
+    }
+    
+    // Register Page Handler
+    const registerForm = document.getElementById('register-form');
+    if (registerForm) {
+        registerForm.addEventListener('submit', handleRegister);
         return;
     }
 
@@ -201,6 +208,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Logout Button
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+
+    // Tools Page Handlers
+    const invoiceForm = document.getElementById('invoice-form');
+    if (invoiceForm) {
+        invoiceForm.addEventListener('submit', handleCreateInvoice);
+    }
+    const quoteForm = document.getElementById('quote-form');
+    if (quoteForm) {
+        quoteForm.addEventListener('submit', handleCreateQuote);
+    }
 
     // Page Specific Loading
     if (typeof API_ENDPOINT !== 'undefined' && API_ENDPOINT) {
@@ -228,3 +245,120 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
+
+// Register Handler
+async function handleRegister(e) {
+    if(e) e.preventDefault();
+    const errorDiv = document.getElementById('register-error');
+    const successDiv = document.getElementById('register-success');
+    if(errorDiv) errorDiv.classList.add('hidden');
+    if(successDiv) successDiv.classList.add('hidden');
+
+    const fullName = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+
+    if (password !== confirmPassword) {
+        if(errorDiv) {
+            errorDiv.textContent = 'Passwords do not match';
+            errorDiv.classList.remove('hidden');
+        }
+        return;
+    }
+
+    const [firstName, ...lastNameParts] = fullName.split(' ');
+    const lastName = lastNameParts.join(' ') || '';
+    const username = email.split('@')[0];
+
+    try {
+        const response = await fetch(`${API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                email, 
+                password,
+                username,
+                first_name: firstName,
+                last_name: lastName
+            })
+        });
+        
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Registration failed');
+        
+        if(successDiv) {
+            successDiv.textContent = 'Account created successfully! Redirecting...';
+            successDiv.classList.remove('hidden');
+        }
+        
+        setTimeout(() => window.location.href = '/login', 2000);
+    } catch (err) {
+        if(errorDiv) {
+            errorDiv.textContent = err.message;
+            errorDiv.classList.remove('hidden');
+        }
+    }
+}
+
+// Create Invoice Handler
+async function handleCreateInvoice(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+        invoice_number: 'INV-' + Date.now().toString().slice(-6),
+        client_id: 1, // Mock ID for now, naturally would be a select
+        issue_date: new Date().toISOString().split('T')[0],
+        due_date: formData.get('due_date'),
+        status: 'draft',
+        total_amount: 0, // Should be calculated
+        items: [] // Logic to parse items needs to be implemented
+    };
+
+    try {
+        const response = await fetch(`${API_BASE}/invoices`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify(data)
+        });
+        if(response.ok) {
+            alert('Invoice created successfully!');
+            window.location.href = '/invoices';
+        } else {
+            alert('Failed to create invoice');
+        }
+    } catch(err) {
+        console.error(err);
+        alert('Error creating invoice');
+    }
+}
+
+// Create Quote Handler
+async function handleCreateQuote(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+        quotation_number: 'Q-' + Date.now().toString().slice(-6),
+        client_id: 1, // Mock
+        valid_until: formData.get('valid_until'),
+        status: 'draft',
+        total_amount: 0
+    };
+
+    try {
+        const response = await fetch(`${API_BASE}/sales/quotations`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify(data)
+        });
+        if(response.ok) {
+            alert('Quotation created successfully!');
+            window.location.href = '/quotations'; // Frontend route needs mapping
+        } else {
+            alert('Failed to create quotation');
+        }
+    } catch(err) {
+        console.error(err);
+        alert('Error creating quotation');
+    }
+}

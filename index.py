@@ -123,9 +123,17 @@ def index():
 def login_page():
     return render_template('login.html')
 
+@app.route('/register')
+def register_page():
+    return render_template('register.html')
+
 @app.route('/dashboard')
 def dashboard_page():
     return render_template('dashboard.html', title='Dashboard', active_view='dashboard', api_endpoint='/dashboard/stats', view_key='stats')
+
+@app.route('/tools')
+def tools_page():
+    return render_template('tools.html', title='Tools & Generators', active_view='tools', api_endpoint=None, view_key=None)
 
 # Generic route for all list views
 @app.route('/<view_name>')
