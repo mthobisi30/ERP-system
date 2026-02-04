@@ -1,4 +1,4 @@
-# ERP System - Complete Project Structure
+# Rephina Software ERP - Complete Project Structure
 
 ```
 erp-system/

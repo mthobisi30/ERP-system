@@ -1,6 +1,6 @@
-# 🏢 Comprehensive ERP System
+# 🏢 Rephina Software ERP
 
-A full-featured Enterprise Resource Planning (ERP) system built with Python Flask and PostgreSQL, designed for deployment on Vercel.
+A full-featured Enterprise Resource Planning (ERP) system built with Python Flask and PostgreSQL (Rephina Software ERP).
 
 ## 📋 Features
 

@@ -1,6 +1,6 @@
 """
 Main Flask Application Entry Point
-ERP System
+Rephina Software ERP
 """
 from flask import Flask, jsonify, request, send_from_directory, render_template, redirect
 from flask_cors import CORS
