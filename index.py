@@ -35,6 +35,18 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour"]
 )
 
+# Email config
+app.config.update(
+    MAIL_SERVER=os.getenv('MAIL_SERVER', 'smtp.gmail.com'),
+    MAIL_PORT=int(os.getenv('MAIL_PORT', 587)),
+    MAIL_USE_TLS=os.getenv('MAIL_USE_TLS', '1') == '1',
+    MAIL_USERNAME=os.getenv('MAIL_USERNAME'),
+    MAIL_PASSWORD=os.getenv('MAIL_PASSWORD'),
+    MAIL_DEFAULT_SENDER=os.getenv('MAIL_DEFAULT_SENDER', 'noreply@rephina.com')
+)
+from app.services.email_service import mail
+mail.init_app(app)
+
 # Import database
 from config.database import db, init_db
 

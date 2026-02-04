@@ -43,9 +43,21 @@ class Config:
     AWS_S3_BUCKET = os.getenv('AWS_S3_BUCKET')
     AWS_S3_REGION = os.getenv('AWS_S3_REGION', 'us-east-1')
     
+    # Cloudinary (Alternative Storage)
+    CLOUDINARY_URL = os.getenv('CLOUDINARY_URL')
+    CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME')
+    CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
+    CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET')
+    
+    # External APIs
+    STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')
+    STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+    OPENWEATHER_API_KEY = os.getenv('OPENWEATHER_API_KEY')
+    MAPS_API_KEY = os.getenv('MAPS_API_KEY')
+    
     # Company
-    COMPANY_NAME = os.getenv('COMPANY_NAME', 'My Company')
-    COMPANY_EMAIL = os.getenv('COMPANY_EMAIL', 'contact@company.com')
+    COMPANY_NAME = os.getenv('COMPANY_NAME', 'Rephina Software')
+    COMPANY_EMAIL = os.getenv('COMPANY_EMAIL', 'contact@rephina.com')
     DEFAULT_CURRENCY = os.getenv('DEFAULT_CURRENCY', 'USD')
     TIMEZONE = os.getenv('TIMEZONE', 'UTC')
 

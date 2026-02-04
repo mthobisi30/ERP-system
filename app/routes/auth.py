@@ -4,6 +4,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token, jwt_re
 from flask_bcrypt import generate_password_hash, check_password_hash
 from config.database import db
 from app.models.user import User
+from app.services.email_service import EmailService
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -22,6 +23,10 @@ def register():
     )
     db.session.add(user)
     db.session.commit()
+    
+    # Send welcome email asynchronously (or simple synchronous for now)
+    EmailService.send_welcome_email(user.email, user.username)
+    
     return jsonify({'message': 'User created successfully', 'user': user.to_dict()}), 201
 
 @auth_bp.route('/login', methods=['POST'])
