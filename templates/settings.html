@@ -1,0 +1,327 @@
+{% extends "layout.html" %}
+
+{% block head %}
+<script>
+    var API_ENDPOINT = "{{ api_endpoint }}";
+    var VIEW_KEY = "{{ view_key }}";
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="settings-container" class="max-w-5xl mx-auto space-y-8">
+    
+    <!-- Tab Navigation -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-1.5">
+        <nav class="flex gap-1" id="settings-tabs">
+            <button onclick="switchTab('appearance')" class="settings-tab active flex-1 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all" data-tab="appearance">
+                <i class="fas fa-palette mr-2"></i> Appearance
+            </button>
+            <button onclick="switchTab('regional')" class="settings-tab flex-1 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all" data-tab="regional">
+                <i class="fas fa-globe mr-2"></i> Regional
+            </button>
+            <button onclick="switchTab('notifications')" class="settings-tab flex-1 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all" data-tab="notifications">
+                <i class="fas fa-bell mr-2"></i> Notifications
+            </button>
+            <button onclick="switchTab('system')" class="settings-tab flex-1 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all" data-tab="system">
+                <i class="fas fa-server mr-2"></i> System
+            </button>
+        </nav>
+    </div>
+
+    <!-- Appearance Tab -->
+    <div id="tab-appearance" class="settings-panel">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-100 bg-gray-50">
+                <h2 class="text-lg font-bold text-gray-900"><i class="fas fa-palette mr-2 text-primary-600"></i> Appearance & Display</h2>
+                <p class="text-sm text-gray-500 mt-1">Customize how the ERP looks and feels.</p>
+            </div>
+            <div class="p-6 space-y-6">
+                <!-- Theme Toggle -->
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-gray-700 to-gray-900 rounded-xl flex items-center justify-center text-white">
+                            <i class="fas fa-moon"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900">Dark Mode</h4>
+                            <p class="text-sm text-gray-500">Switch to a darker color scheme for low-light environments.</p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="theme-toggle" class="sr-only peer" onchange="toggleTheme()">
+                        <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary-600"></div>
+                    </label>
+                </div>
+
+                <!-- Sidebar Collapsed -->
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                            <i class="fas fa-columns"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900">Compact Sidebar</h4>
+                            <p class="text-sm text-gray-500">Collapse sidebar to show only icons.</p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="sidebar-toggle" class="sr-only peer" onchange="savePreferences()">
+                        <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary-600"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Regional Tab -->
+    <div id="tab-regional" class="settings-panel hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-100 bg-gray-50">
+                <h2 class="text-lg font-bold text-gray-900"><i class="fas fa-globe mr-2 text-primary-600"></i> Regional Settings</h2>
+                <p class="text-sm text-gray-500 mt-1">Set your language, currency, and date/time formats.</p>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Language -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                        <select id="pref-language" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 bg-gray-50" onchange="savePreferences()">
+                            <option value="en">English</option>
+                            <option value="es">Español</option>
+                            <option value="fr">Français</option>
+                            <option value="de">Deutsch</option>
+                            <option value="pt">Português</option>
+                            <option value="zh">中文</option>
+                            <option value="ja">日本語</option>
+                            <option value="ar">العربية</option>
+                        </select>
+                    </div>
+                    <!-- Region -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Region</label>
+                        <select id="pref-region" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 bg-gray-50" onchange="savePreferences()">
+                            <option value="US">United States</option>
+                            <option value="GB">United Kingdom</option>
+                            <option value="EU">European Union</option>
+                            <option value="ZA">South Africa</option>
+                            <option value="AU">Australia</option>
+                            <option value="IN">India</option>
+                            <option value="JP">Japan</option>
+                            <option value="BR">Brazil</option>
+                        </select>
+                    </div>
+                    <!-- Currency -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Currency</label>
+                        <select id="pref-currency" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 bg-gray-50" onchange="savePreferences()">
+                            <option value="USD">$ USD - US Dollar</option>
+                            <option value="EUR">€ EUR - Euro</option>
+                            <option value="GBP">£ GBP - British Pound</option>
+                            <option value="ZAR">R ZAR - South African Rand</option>
+                            <option value="AUD">A$ AUD - Australian Dollar</option>
+                            <option value="INR">₹ INR - Indian Rupee</option>
+                            <option value="JPY">¥ JPY - Japanese Yen</option>
+                            <option value="BRL">R$ BRL - Brazilian Real</option>
+                        </select>
+                    </div>
+                    <!-- Date Format -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date Format</label>
+                        <select id="pref-date-format" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 bg-gray-50" onchange="savePreferences()">
+                            <option value="YYYY-MM-DD">2026-02-04 (ISO)</option>
+                            <option value="DD/MM/YYYY">04/02/2026 (UK/EU)</option>
+                            <option value="MM/DD/YYYY">02/04/2026 (US)</option>
+                            <option value="DD-MM-YYYY">04-02-2026</option>
+                        </select>
+                    </div>
+                    <!-- Time Format -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Time Format</label>
+                        <select id="pref-time-format" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 bg-gray-50" onchange="savePreferences()">
+                            <option value="24h">24-hour (14:30)</option>
+                            <option value="12h">12-hour (2:30 PM)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Tab -->
+    <div id="tab-notifications" class="settings-panel hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-100 bg-gray-50">
+                <h2 class="text-lg font-bold text-gray-900"><i class="fas fa-bell mr-2 text-primary-600"></i> Notification Preferences</h2>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900">Email Notifications</h4>
+                            <p class="text-sm text-gray-500">Receive important updates via email.</p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="notifications-toggle" class="sr-only peer" checked onchange="savePreferences()">
+                        <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary-600"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Tab -->
+    <div id="tab-system" class="settings-panel hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-100 bg-gray-50">
+                <h2 class="text-lg font-bold text-gray-900"><i class="fas fa-server mr-2 text-primary-600"></i> System Configuration Status</h2>
+            </div>
+            <div class="p-6" id="system-status-content">
+                <div class="flex justify-center items-center h-32">
+                    <i class="fas fa-circle-notch fa-spin text-primary-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Environment Guide -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-100 bg-gray-50">
+                <h2 class="text-lg font-bold text-gray-900"><i class="fas fa-cog mr-2 text-primary-600"></i> Environment Configuration</h2>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex items-start gap-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <div><h4 class="font-semibold text-gray-900">Cloudinary</h4><p class="text-sm text-gray-600">CLOUDINARY_URL, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET</p></div>
+                </div>
+                <div class="flex items-start gap-4 p-4 bg-green-50 rounded-lg border border-green-100">
+                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600 flex-shrink-0"><i class="fas fa-envelope"></i></div>
+                    <div><h4 class="font-semibold text-gray-900">SMTP Email</h4><p class="text-sm text-gray-600">MAIL_SERVER, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD</p></div>
+                </div>
+                <div class="flex items-start gap-4 p-4 bg-purple-50 rounded-lg border border-purple-100">
+                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 flex-shrink-0"><i class="fab fa-stripe-s"></i></div>
+                    <div><h4 class="font-semibold text-gray-900">Stripe Payments</h4><p class="text-sm text-gray-600">STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .settings-tab { color: #64748b; background: transparent; }
+    .settings-tab.active { color: white; background: linear-gradient(135deg, #ea580c, #f97316); box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+    .settings-tab:not(.active):hover { background: #f1f5f9; }
+    
+    /* Dark Mode Styles */
+    body.dark { background-color: #0f172a; color: #e2e8f0; }
+    body.dark .bg-white { background-color: #1e293b !important; }
+    body.dark .bg-gray-50, body.dark .bg-gray-100 { background-color: #334155 !important; }
+    body.dark .text-gray-900 { color: #f1f5f9 !important; }
+    body.dark .text-gray-600, body.dark .text-gray-500 { color: #94a3b8 !important; }
+    body.dark .border-gray-200, body.dark .border-gray-100 { border-color: #475569 !important; }
+    body.dark .text-slate-800 { color: #e2e8f0 !important; }
+    body.dark aside { background-color: #1e293b !important; }
+    body.dark header { background-color: #1e293b !important; border-color: #475569 !important; }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const token = localStorage.getItem('erp_token');
+
+document.addEventListener('DOMContentLoaded', async function() {
+    if (!token) return;
+    loadPreferences();
+    loadSystemStatus();
+    
+    // Apply saved theme
+    const savedTheme = localStorage.getItem('erp_theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark');
+        document.getElementById('theme-toggle').checked = true;
+    }
+});
+
+function switchTab(tabName) {
+    document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.settings-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    document.getElementById('tab-' + tabName).classList.remove('hidden');
+}
+
+async function loadPreferences() {
+    try {
+        const res = await fetch('/api/settings/preferences', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.ok) {
+            const prefs = await res.json();
+            document.getElementById('pref-language').value = prefs.language || 'en';
+            document.getElementById('pref-region').value = prefs.region || 'US';
+            document.getElementById('pref-currency').value = prefs.currency || 'USD';
+            document.getElementById('pref-date-format').value = prefs.date_format || 'YYYY-MM-DD';
+            document.getElementById('pref-time-format').value = prefs.time_format || '24h';
+            document.getElementById('notifications-toggle').checked = prefs.notifications_enabled !== false;
+            document.getElementById('sidebar-toggle').checked = prefs.sidebar_collapsed === true;
+        }
+    } catch (e) { console.error('Error loading preferences:', e); }
+}
+
+async function savePreferences() {
+    const prefs = {
+        theme: document.getElementById('theme-toggle').checked ? 'dark' : 'light',
+        language: document.getElementById('pref-language').value,
+        region: document.getElementById('pref-region').value,
+        currency: document.getElementById('pref-currency').value,
+        date_format: document.getElementById('pref-date-format').value,
+        time_format: document.getElementById('pref-time-format').value,
+        notifications_enabled: document.getElementById('notifications-toggle').checked,
+        sidebar_collapsed: document.getElementById('sidebar-toggle').checked
+    };
+    
+    try {
+        await fetch('/api/settings/preferences', {
+            method: 'PUT',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify(prefs)
+        });
+    } catch (e) { console.error('Error saving preferences:', e); }
+}
+
+function toggleTheme() {
+    const isDark = document.getElementById('theme-toggle').checked;
+    document.body.classList.toggle('dark', isDark);
+    localStorage.setItem('erp_theme', isDark ? 'dark' : 'light');
+    savePreferences();
+}
+
+async function loadSystemStatus() {
+    try {
+        const res = await fetch('/api/settings/system-status', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.ok) {
+            const data = await res.json();
+            const c = document.getElementById('system-status-content');
+            c.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-xl ${data.storage.configured ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'} border">
+                        <span class="text-sm font-medium text-gray-700">File Storage</span>
+                        <span class="float-right px-2 py-0.5 text-xs font-bold rounded-full ${data.storage.configured ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800'}">${data.storage.provider}</span>
+                    </div>
+                    <div class="p-4 rounded-xl ${data.email.smtp_configured ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'} border">
+                        <span class="text-sm font-medium text-gray-700">Email (SMTP)</span>
+                        <span class="float-right px-2 py-0.5 text-xs font-bold rounded-full ${data.email.smtp_configured ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800'}">${data.email.smtp_configured ? 'Configured' : 'Not Set'}</span>
+                    </div>
+                    <div class="p-4 rounded-xl ${data.payments.stripe_configured ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'} border">
+                        <span class="text-sm font-medium text-gray-700">Payments (Stripe)</span>
+                        <span class="float-right px-2 py-0.5 text-xs font-bold rounded-full ${data.payments.stripe_configured ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-800'}">${data.payments.stripe_configured ? 'Configured' : 'Not Set'}</span>
+                    </div>
+                </div>
+                <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <p class="text-sm text-gray-600"><i class="fas fa-building mr-2"></i> <strong>Company:</strong> ${data.company.name} | <strong>Currency:</strong> ${data.company.currency} | <strong>Timezone:</strong> ${data.company.timezone}</p>
+                </div>
+            `;
+        }
+    } catch (e) { console.error('Error loading system status:', e); }
+}
+</script>
+{% endblock %}

@@ -64,3 +64,48 @@ def get_system_status():
             'timezone': config.get('TIMEZONE')
         }
     }), 200
+
+# ============ User Preferences ============
+from flask_jwt_extended import get_jwt_identity
+from app.models.settings import UserPreferences
+
+@settings_bp.route('/preferences', methods=['GET'])
+@jwt_required()
+def get_user_preferences():
+    """Get current user's preferences."""
+    user_id = get_jwt_identity()
+    prefs = UserPreferences.query.filter_by(user_id=user_id).first()
+    if not prefs:
+        # Return defaults
+        return jsonify({
+            'theme': 'light',
+            'language': 'en',
+            'region': 'US',
+            'currency': 'USD',
+            'date_format': 'YYYY-MM-DD',
+            'time_format': '24h',
+            'notifications_enabled': True,
+            'sidebar_collapsed': False
+        }), 200
+    return jsonify(prefs.to_dict()), 200
+
+@settings_bp.route('/preferences', methods=['PUT'])
+@jwt_required()
+def update_user_preferences():
+    """Update current user's preferences."""
+    user_id = get_jwt_identity()
+    prefs = UserPreferences.query.filter_by(user_id=user_id).first()
+    
+    if not prefs:
+        prefs = UserPreferences(user_id=user_id)
+        db.session.add(prefs)
+    
+    data = request.get_json()
+    allowed_fields = ['theme', 'language', 'region', 'currency', 'date_format', 'time_format', 'notifications_enabled', 'sidebar_collapsed']
+    
+    for key, value in data.items():
+        if key in allowed_fields:
+            setattr(prefs, key, value)
+    
+    db.session.commit()
+    return jsonify({'message': 'Preferences updated', 'preferences': prefs.to_dict()}), 200

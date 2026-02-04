@@ -151,6 +151,10 @@ def tools_page():
 def profile_page():
     return render_template('profile.html', title='User Profile', active_view='profile', api_endpoint='/auth/me', view_key='user')
 
+@app.route('/settings')
+def settings_page():
+    return render_template('settings.html', title='System Settings', active_view='settings', api_endpoint='/settings', view_key='settings')
+
 # Generic route for all list views
 @app.route('/<view_name>')
 def list_view(view_name):
@@ -195,6 +199,12 @@ def list_view(view_name):
                              active_view=view_name, 
                              api_endpoint=config['endpoint'], 
                              view_key=config['key'])
+    
+    # Special routes are handled by their own dedicated route handlers
+    # This prevents this generic handler from returning 404 for them
+    if view_name in ['dashboard', 'tools', 'profile', 'settings', 'login', 'register']:
+        # Flask should have already matched the specific route, but just in case:
+        return redirect(f'/{view_name}')
     
     return "Page not found", 404
 

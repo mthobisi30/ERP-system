@@ -294,3 +294,19 @@ CREATE TABLE IF NOT EXISTS leaves (
     status VARCHAR(50) DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- User Preferences (Settings)
+CREATE TABLE IF NOT EXISTS user_preferences (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) UNIQUE NOT NULL,
+    theme VARCHAR(20) DEFAULT 'light',
+    language VARCHAR(10) DEFAULT 'en',
+    region VARCHAR(10) DEFAULT 'US',
+    currency VARCHAR(10) DEFAULT 'USD',
+    date_format VARCHAR(20) DEFAULT 'YYYY-MM-DD',
+    time_format VARCHAR(10) DEFAULT '24h',
+    notifications_enabled BOOLEAN DEFAULT TRUE,
+    sidebar_collapsed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
