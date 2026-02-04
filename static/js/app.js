@@ -327,9 +327,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const data = await fetchData(API_ENDPOINT);
         if (data) {
             // Check context
-            if (window.location.pathname === '/dashboard') {
+            if (window.location.pathname.includes('/dashboard')) {
                 renderDashboard(data);
-            } else if (window.location.pathname === '/profile') {
+            } else if (window.location.pathname.includes('/profile')) {
                 renderProfile(data);
             } else if (typeof VIEW_KEY !== 'undefined') {
                  // Handle list extraction
