@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div id="list-container">
+    <div class="loading"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+</div>
+
+<!-- Config for JS to know what to load -->
+<script>
+    window.PAGE_CONFIG = {
+        type: 'list',
+        endpoint: '{{ api_endpoint }}',
+        key: '{{ view_key }}'
+    };
+</script>
+{% endblock %}

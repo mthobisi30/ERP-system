@@ -1,181 +1,230 @@
 // App State
 const state = {
-    currentUser: null,
-    currentView: 'dashboard',
     token: localStorage.getItem('erp_token')
 };
 
-// DOM Elements
-const contentArea = document.getElementById('content-area');
-const pageTitle = document.getElementById('page-title');
-const navLinks = document.querySelectorAll('.nav-item');
-
-// API Configuration
+// API Base
 const API_BASE = '/api';
 
-// Router
-function navigateTo(view) {
-    state.currentView = view;
-    
-    // Update Sidebar
-    navLinks.forEach(link => {
-        if(link.dataset.view === view) {
-            link.classList.add('active');
-        } else {
-            link.classList.remove('active');
-        }
-    });
+// DOM Elements
+const loginForm = document.getElementById('login-form');
+const loginError = document.getElementById('login-error');
 
-    // Render View
-    switch(view) {
-        case 'dashboard':
-            renderDashboard();
-            break;
-        case 'projects':
-            renderProjects();
-            break;
-        case 'tasks':
-            renderTasks();
-            break;
-        case 'users':
-            renderUsers();
-            break;
-        case 'settings':
-            renderSettings();
-            break;
-        default:
-            renderDashboard();
+// Auth Headers
+function getHeaders() {
+    const headers = { 'Content-Type': 'application/json' };
+    if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
+    return headers;
+}
+
+// Login Handler
+async function handleLogin(e) {
+    if(e) e.preventDefault();
+    if(loginError) loginError.style.display = 'none';
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    try {
+        const response = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Login failed');
+        
+        localStorage.setItem('erp_token', data.access_token);
+        window.location.href = '/dashboard';
+    } catch (err) {
+        if(loginError) {
+            loginError.textContent = err.message;
+            loginError.style.display = 'block';
+            loginError.classList.remove('hidden');
+        }
     }
 }
 
-// Render Functions
-function renderDashboard() {
-    pageTitle.textContent = 'Dashboard';
-    contentArea.innerHTML = `
-        <div class="grid-container">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Total Projects</h3>
-                    <i class="fas fa-project-diagram" style="color: var(--primary-color)"></i>
+// Logout Handler
+function handleLogout(e) {
+    if(e) e.preventDefault();
+    localStorage.removeItem('erp_token');
+    window.location.href = '/login';
+}
+
+// Data Fetching
+async function fetchData(endpoint) {
+    try {
+        const response = await fetch(`${API_BASE}${endpoint}`, { headers: getHeaders() });
+        if (response.status === 401) {
+            localStorage.removeItem('erp_token');
+            window.location.href = '/login';
+            return null;
+        }
+        return await response.json();
+    } catch (err) {
+        console.error('Fetch error:', err);
+        return null;
+    }
+}
+
+// Tailwind Table Render
+function renderTable(containerId, list, title) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (!list || list.length === 0) {
+        container.innerHTML = `
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+                <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+                    <i class="fas fa-folder-open text-2xl"></i>
                 </div>
-                <div class="stat-value">12</div>
-                <div class="stat-label">4 Active, 8 Completed</div>
-            </div>
+                <h3 class="text-lg font-medium text-gray-900">No records found</h3>
+                <p class="text-gray-500 mt-1">There are no items to display in this view yet.</p>
+                <button class="mt-6 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm" onclick="alert('Create feature coming soon!')">
+                    <i class="fas fa-plus mr-2"></i> Create New
+                </button>
+            </div>`;
+        return;
+    }
+
+    const firstItem = list[0];
+    const columns = Object.keys(firstItem).slice(0, 5);
+    
+    // Header Generation
+    const headers = columns.map(c => 
+        `<th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">${c.replace(/_/g, ' ')}</th>`
+    ).join('');
+    
+    // Row Generation
+    const rows = list.map(item => {
+        const cells = columns.map(col => {
+            let val = item[col];
+            if (val === null || val === undefined) val = '-';
+            if (typeof val === 'object') val = JSON.stringify(val).substring(0, 20) + '...';
             
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Pending Tasks</h3>
-                    <i class="fas fa-tasks" style="color: var(--warning-color)"></i>
-                </div>
-                <div class="stat-value">24</div>
-                <div class="stat-label">3 High Priority</div>
-            </div>
+            // Status Badges (Simple heuristics)
+            if (col.includes('status')) {
+                const color = val === 'active' || val === 'completed' ? 'green' : 
+                             val === 'pending' || val === 'draft' ? 'yellow' : 'gray';
+                val = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${color}-100 text-${color}-800 capitalize">${val}</span>`;
+            }
             
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Team Members</h3>
-                    <i class="fas fa-users" style="color: var(--success-color)"></i>
+            return `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${val}</td>`;
+        }).join('');
+        return `<tr class="hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0">${cells}</tr>`;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+             <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">${title}</h3>
+                    <p class="text-sm text-gray-500">Managing ${list.length} records</p>
                 </div>
-                <div class="stat-value">8</div>
-                <div class="stat-label">Active now</div>
+                <button class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm text-sm font-medium" onclick="alert('Create feature coming soon!')">
+                    <i class="fas fa-plus mr-2"></i> Add New
+                </button>
             </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Revenue (YTD)</h3>
-                    <i class="fas fa-chart-line" style="color: var(--secondary-color)"></i>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>${headers}</tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        ${rows}
+                    </tbody>
+                </table>
+            </div>
+            <div class="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between">
+                <span class="text-xs text-gray-500">Showing 1 to ${Math.min(20, list.length)} of ${list.length} results</span>
+                <div class="flex gap-2">
+                    <button class="px-3 py-1 border border-gray-300 rounded text-xs text-gray-600 hover:bg-white disabled:opacity-50" disabled>Previous</button>
+                    <button class="px-3 py-1 border border-gray-300 rounded text-xs text-gray-600 hover:bg-white disabled:opacity-50" disabled>Next</button>
                 </div>
-                <div class="stat-value">$142k</div>
-                <div class="stat-label">+12% from last month</div>
             </div>
-        </div>
-
-        <div class="card" style="margin-top: 1.5rem;">
-            <div class="card-header">
-                <h3 class="card-title">Recent Activity</h3>
-            </div>
-            <p>System operational. API version 1.0.0 running.</p>
         </div>
     `;
 }
 
-function renderProjects() {
-    pageTitle.textContent = 'Projects';
-    contentArea.innerHTML = `
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Active Projects</h3>
-                <button class="btn btn-primary">New Project</button>
+// Minimal Dashboard Render (NO STATS CARDS)
+function renderDashboard(data) {
+    const container = document.getElementById('dashboard-container');
+    if (!container) return;
+    
+    // Simple welcome message instead of cards
+    container.innerHTML = `
+        <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome back, Admin! 👋</h2>
+            <p class="text-gray-500">Here is what's happening with your business today.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Recent Projects Preview -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 font-semibold text-gray-700 flex justify-between items-center">
+                    <span>Recent Projects</span>
+                    <a href="/projects" class="text-primary-600 text-sm hover:underline">View All</a>
+                </div>
+                <div class="p-6 text-center text-gray-500 text-sm">
+                    No recent activity driven by API yet.
+                </div>
             </div>
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="text-align: left; border-bottom: 2px solid var(--border-color);">
-                        <th style="padding: 1rem 0;">Project Name</th>
-                        <th>Status</th>
-                        <th>Due Date</th>
-                        <th>Team</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="padding: 1rem 0;">ERP Implementation</td>
-                        <td><span style="background: #dbeafe; color: #1e40af; padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.75rem;">In Progress</span></td>
-                        <td>Mar 15, 2026</td>
-                        <td>Dev Team A</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 1rem 0;">Marketing Website</td>
-                        <td><span style="background: #dcfce7; color: #166534; padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.75rem;">Completed</span></td>
-                        <td>Jan 20, 2026</td>
-                        <td>Marketing</td>
-                    </tr>
-                </tbody>
-            </table>
+
+            <!-- Recent Tasks Preview -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 font-semibold text-gray-700 flex justify-between items-center">
+                    <span>Pending Tasks</span>
+                     <a href="/tasks" class="text-primary-600 text-sm hover:underline">View All</a>
+                </div>
+                 <div class="p-6 text-center text-gray-500 text-sm">
+                    No pending tasks found.
+                </div>
+            </div>
         </div>
     `;
 }
 
-// Placeholder renders for other views
-function renderTasks() {
-    pageTitle.textContent = 'Tasks';
-    contentArea.innerHTML = '<div class="card"><p>Task management module loading...</p></div>';
-}
+// Init
+document.addEventListener('DOMContentLoaded', async () => {
+    // Login Page
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+        return;
+    }
 
-function renderUsers() {
-    pageTitle.textContent = 'User Management';
-    contentArea.innerHTML = '<div class="card"><p>User list fetching from /api/users...</p></div>';
-}
+    // Auth Check
+    if (!state.token) {
+        window.location.href = '/login';
+        return;
+    }
 
-function renderSettings() {
-    pageTitle.textContent = 'System Settings';
-    contentArea.innerHTML = `
-        <div class="card">
-            <h3 class="card-title" style="margin-bottom: 1rem;">General Settings</h3>
-            <div class="form-group">
-                <label class="form-label">System Name</label>
-                <input type="text" class="form-input" value="ERP System v1">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Admin Email</label>
-                <input type="email" class="form-input" value="admin@example.com">
-            </div>
-            <button class="btn btn-primary">Save Changes</button>
-        </div>
-    `;
-}
+    // Logout Button
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
 
-// specific logic for check auth will go here
-// For now, init app
-document.addEventListener('DOMContentLoaded', () => {
-    // Attach event listeners
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const view = link.dataset.view;
-            navigateTo(view);
-        });
-    });
+    // Page Specific Loading
+    if (typeof API_ENDPOINT !== 'undefined' && API_ENDPOINT) {
+        const container = document.getElementById('content-area') || document.getElementById('dashboard-container') || document.getElementById('list-container');
+        if(container) container.innerHTML = '<div class="flex justify-center items-center h-64"><i class="fas fa-circle-notch fa-spin text-primary-500 text-3xl"></i></div>';
 
-    // Initial Load
-    navigateTo('dashboard');
+        const data = await fetchData(API_ENDPOINT);
+        if (data) {
+            // Check context
+            if (window.location.pathname === '/dashboard') {
+                renderDashboard(data);
+            } else if (typeof VIEW_KEY !== 'undefined') {
+                 // Handle list extraction
+                let list = [];
+                 if (Array.isArray(data)) {
+                    list = data;
+                } else if (data[VIEW_KEY]) {
+                    list = data[VIEW_KEY];
+                } else {
+                    const firstArrayKey = Object.keys(data).find(k => Array.isArray(data[k]));
+                    if (firstArrayKey) list = data[firstArrayKey];
+                }
+                renderTable('list-container', list, document.title.split('|')[1].trim());
+            }
+        }
+    }
 });

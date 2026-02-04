@@ -2,7 +2,7 @@
 Main Flask Application Entry Point
 ERP System
 """
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, render_template, redirect
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
@@ -117,26 +117,67 @@ def forbidden(error):
 # Root route - Serve Frontend
 @app.route('/')
 def index():
-    return send_from_directory('static', 'index.html')
+    return redirect('/dashboard')
 
-# API Root - List Endpoints
+@app.route('/login')
+def login_page():
+    return render_template('login.html')
+
+@app.route('/dashboard')
+def dashboard_page():
+    return render_template('dashboard.html', title='Dashboard', active_view='dashboard', api_endpoint='/dashboard/stats', view_key='stats')
+
+# Generic route for all list views
+@app.route('/<view_name>')
+def list_view(view_name):
+    # Map view names to API endpoints/titles
+    VIEW_CONFIG = {
+        'projects': {'title': 'Projects', 'endpoint': '/projects', 'key': 'projects'},
+        'tasks': {'title': 'Tasks', 'endpoint': '/tasks', 'key': 'tasks'},
+        'schedule': {'title': 'Schedule', 'endpoint': '/schedule', 'key': 'events'},
+        'documents': {'title': 'Documents', 'endpoint': '/documents', 'key': 'documents'},
+        'customers': {'title': 'Customers', 'endpoint': '/customers', 'key': 'customers'},
+        'leads': {'title': 'Leads', 'endpoint': '/leads', 'key': 'leads'},
+        'opportunities': {'title': 'Opportunities', 'endpoint': '/opportunities', 'key': 'opportunities'},
+        'sales': {'title': 'Sales Orders', 'endpoint': '/sales/orders', 'key': 'orders'},
+        'quotations': {'title': 'Quotations', 'endpoint': '/sales/quotations', 'key': 'quotations'},
+        'products': {'title': 'Products', 'endpoint': '/products', 'key': 'products'},
+        'inventory': {'title': 'Stock Levels', 'endpoint': '/inventory', 'key': 'items'},
+        'warehouses': {'title': 'Warehouses', 'endpoint': '/inventory/warehouses', 'key': 'warehouses'},
+        'procurement': {'title': 'Purchase Orders', 'endpoint': '/procurement/purchase-orders', 'key': 'orders'},
+        'suppliers': {'title': 'Suppliers', 'endpoint': '/suppliers', 'key': 'suppliers'},
+        'accounting': {'title': 'Chart of Accounts', 'endpoint': '/accounting/accounts', 'key': 'accounts'},
+        'journal_entries': {'title': 'Journal Entries', 'endpoint': '/accounting/journal-entries', 'key': 'entries'},
+        'invoices': {'title': 'Invoices', 'endpoint': '/invoices', 'key': 'invoices'},
+        'payments': {'title': 'Payments', 'endpoint': '/payments', 'key': 'payments'},
+        'expenses': {'title': 'Expenses', 'endpoint': '/expenses', 'key': 'expenses'},
+        'hr': {'title': 'Employees', 'endpoint': '/hr', 'key': 'employees'},
+        'attendance': {'title': 'Attendance', 'endpoint': '/hr/attendance', 'key': 'attendance'},
+        'leaves': {'title': 'Leaves', 'endpoint': '/hr/leaves', 'key': 'leaves'},
+        'performance': {'title': 'Performance', 'endpoint': '/hr/performance-reviews', 'key': 'reviews'},
+        'users': {'title': 'Users', 'endpoint': '/users', 'key': 'users'},
+        'time-tracking': {'title': 'Time Tracking', 'endpoint': '/time-tracking', 'key': 'entries'},
+        'tickets': {'title': 'Tickets', 'endpoint': '/tickets', 'key': 'tickets'},
+        'notifications': {'title': 'Notifications', 'endpoint': '/notifications', 'key': 'notifications'},
+        'reports': {'title': 'Reports', 'endpoint': '/reports', 'key': 'reports'},
+        'logs': {'title': 'Logs', 'endpoint': '/logs/system', 'key': 'logs'},
+        'settings': {'title': 'Settings', 'endpoint': '/settings', 'key': 'settings'},
+    }
+
+    if view_name in VIEW_CONFIG:
+        config = VIEW_CONFIG[view_name]
+        return render_template('list_view.html', 
+                             title=config['title'], 
+                             active_view=view_name, 
+                             api_endpoint=config['endpoint'], 
+                             view_key=config['key'])
+    
+    return "Page not found", 404
+
+# API Documentation / Health
 @app.route('/api')
 def api_index():
     return jsonify({
-        'name': 'ERP System API',
-        'version': '1.0.0',
-        'status': 'running',
-        'endpoints': {
-            'auth': '/api/auth',
-            'users': '/api/users',
-            'dashboard': '/api/dashboard',
-            'projects': '/api/projects',
-            'tasks': '/api/tasks',
-            'schedule': '/api/schedule',
-            'time_tracking': '/api/time-tracking',
-            'customers': '/api/customers',
-            'leads': '/api/leads',
-            'opportunities': '/api/opportunities',
             'products': '/api/products',
             'inventory': '/api/inventory',
             'sales': '/api/sales',
