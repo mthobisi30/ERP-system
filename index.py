@@ -2,7 +2,7 @@
 Main Flask Application Entry Point
 ERP System
 """
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
@@ -114,9 +114,14 @@ def unauthorized(error):
 def forbidden(error):
     return jsonify({'error': 'Forbidden', 'message': 'Insufficient permissions'}), 403
 
-# Root route
+# Root route - Serve Frontend
 @app.route('/')
 def index():
+    return send_from_directory('static', 'index.html')
+
+# API Root - List Endpoints
+@app.route('/api')
+def api_index():
     return jsonify({
         'name': 'ERP System API',
         'version': '1.0.0',
