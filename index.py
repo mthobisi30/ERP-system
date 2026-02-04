@@ -178,6 +178,9 @@ def list_view(view_name):
 @app.route('/api')
 def api_index():
     return jsonify({
+        'message': 'ERP System API',
+        'version': '1.0',
+        'endpoints': {
             'products': '/api/products',
             'inventory': '/api/inventory',
             'sales': '/api/sales',
