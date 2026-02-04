@@ -153,7 +153,7 @@ def profile_page():
 
 @app.route('/settings')
 def settings_page():
-    return render_template('settings.html', title='System Settings', active_view='settings', api_endpoint='/settings', view_key='settings')
+    return render_template('settings.html', title='System Settings', active_view='settings', api_endpoint=None, view_key=None)
 
 # Generic route for all list views
 @app.route('/<view_name>')
