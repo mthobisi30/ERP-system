@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "app.py",
+      "src": "index.py",
       "use": "@vercel/python"
     },
     {
@@ -17,16 +17,16 @@
     },
     {
       "src": "/(.*)",
-      "dest": "app.py"
+      "dest": "index.py"
     }
   ],
   "env": {
-    "FLASK_APP": "app.py",
+    "FLASK_APP": "index.py",
     "FLASK_ENV": "production"
   },
   "regions": ["iad1"],
   "functions": {
-    "app.py": {
+    "index.py": {
       "maxDuration": 30,
       "memory": 1024
     }
