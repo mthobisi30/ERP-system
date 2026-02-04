@@ -208,6 +208,22 @@ def list_view(view_name):
     
     return "Page not found", 404
 
+# Dedicated Create Page Route
+@app.route('/create/<module_name>')
+def create_page(module_name):
+    VIEW_TITLES = {
+        'projects': 'Project', 'tasks': 'Task', 'customers': 'Customer', 'leads': 'Lead',
+        'opportunities': 'Opportunity', 'products': 'Product', 'inventory': 'Inventory Item',
+        'warehouses': 'Warehouse', 'suppliers': 'Supplier', 'hr': 'Employee', 'invoices': 'Invoice',
+        'expenses': 'Expense', 'tickets': 'Support Ticket', 'schedule': 'Event', 'documents': 'Document',
+        'sales': 'Sales Order', 'quotations': 'Quotation', 'procurement': 'Purchase Order',
+        'accounting': 'Account', 'journal_entries': 'Journal Entry', 'attendance': 'Attendance',
+        'leaves': 'Leave Request', 'performance': 'Performance Review', 'users': 'User',
+        'time-tracking': 'Time Entry', 'payments': 'Payment', 'notifications': 'Notification', 'reports': 'Report'
+    }
+    title = VIEW_TITLES.get(module_name, module_name.replace('-', ' ').replace('_', ' ').title())
+    return render_template('create.html', title=title, view_name=module_name, active_view=module_name, api_endpoint=None, view_key=None)
+
 # API Documentation / Health
 @app.route('/api')
 def api_index():

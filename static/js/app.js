@@ -561,53 +561,17 @@ const VIEW_SCHEMAS = {
 };
 
 window.openCreateModal = function(viewKey) {
-    const modal = document.getElementById('create-modal');
-    const title = document.getElementById('modal-title');
-    const fieldsContainer = document.getElementById('modal-fields');
-    const schema = VIEW_SCHEMAS[viewKey] || { title: viewKey, fields: [{id: 'name', label: 'Name'}] };
-    
-    title.textContent = `New ${schema.title}`;
-    fieldsContainer.innerHTML = schema.fields.map(f => `
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">${f.label}</label>
-            ${f.type === 'select' ? `
-                <select name="${f.id}" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500">
-                    ${f.options.map(o => `<option value="${o}">${o.replace(/_/g, ' ')}</option>`).join('')}
-                </select>
-            ` : `
-                <input type="${f.type || 'text'}" name="${f.id}" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500" required>
-            `}
-        </div>
-    `).join('');
+    // Redirect to dedicated create page
+    window.location.href = `/create/${viewKey}`;
+};
 
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-
-    const form = document.getElementById('dynamic-create-form');
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
-        const body = Object.fromEntries(formData.entries());
-        
-        try {
-            // Cleanup endpoint: /projects/stats -> /projects
-            let endpoint = API_ENDPOINT.replace(/\/stats$/, '').split('?')[0];
-            const response = await fetch(`${API_BASE}${endpoint}`, {
-                method: 'POST',
-                headers: getHeaders(),
-                body: JSON.stringify(body)
-            });
-            if (response.ok) {
-                alert('Created successfully!');
-                window.location.reload();
-            } else {
-                const err = await response.json();
-                alert('Error: ' + (err.error || 'Failed to create'));
-            }
-        } catch (err) {
-            alert('Connection error');
-        }
-    };
+// Close Modal Helper
+window.closeModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
 };
 
 // Tool Submit Handlers
@@ -710,3 +674,56 @@ window.deleteRecord = async function(viewKey, id) {
         }
     } catch (err) { alert('Connection error'); }
 };
+
+// Generic Open Modal (for Tools page etc)
+window.openModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+// Profile Page Logic
+async function renderProfile() {
+    const container = document.getElementById('profile-container');
+    if (!container) return;
+
+    try {
+        const user = await fetchData('/auth/me');
+        if (user) {
+            document.getElementById('profile-name-header').textContent = user.first_name ? `${user.first_name} ${user.last_name}` : user.username;
+            document.getElementById('profile-role-header').textContent = user.role || 'User';
+            document.getElementById('profile-username').textContent = user.username;
+            document.getElementById('profile-email').textContent = user.email;
+            document.getElementById('profile-avatar-large').textContent = (user.first_name || user.username).charAt(0).toUpperCase();
+            
+            // Populate Edit Form
+            document.getElementById('edit-first-name').value = user.first_name || '';
+            document.getElementById('edit-last-name').value = user.last_name || '';
+            document.getElementById('edit-username').value = user.username || '';
+            document.getElementById('edit-email').value = user.email || '';
+            
+            // Handle Profile Update
+            const editForm = document.getElementById('edit-profile-form');
+            if (editForm) {
+                editForm.onsubmit = async (e) => {
+                    e.preventDefault();
+                    // Implementation for update profile would go here
+                    // For now just alert
+                    alert('Profile update feature coming soon!');
+                    toggleEditProfile();
+                };
+            }
+        }
+    } catch (e) {
+        console.error('Error loading profile:', e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if we are on profile page
+    if (document.getElementById('profile-container')) {
+        renderProfile();
+    }
+});

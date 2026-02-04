@@ -215,6 +215,42 @@
         const API_ENDPOINT = "{{ api_endpoint }}";
         const VIEW_KEY = "{{ view_key }}";
     </script>
+
+    <!-- Create Modal -->
+    <div id="create-modal" class="fixed inset-0 bg-gray-900/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
+                <h3 class="text-lg font-bold text-gray-900" id="modal-title">New Item</h3>
+                <button onclick="closeModal('create-modal')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="dynamic-create-form" class="p-6 space-y-4">
+                <div id="modal-fields"></div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="closeModal('create-modal')" class="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="fixed inset-0 bg-gray-900/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
+                <h3 class="text-lg font-bold text-gray-900" id="edit-modal-title">Edit Item</h3>
+                <button onclick="closeModal('edit-modal')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="dynamic-edit-form" class="p-6 space-y-4">
+                <input type="hidden" id="edit-item-id">
+                <div id="edit-modal-fields"></div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="closeModal('edit-modal')" class="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="/static/js/app.js"></script>
     {% block scripts %}{% endblock %}
 </body>
