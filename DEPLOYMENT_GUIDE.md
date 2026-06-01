@@ -30,17 +30,22 @@
    ```
 3. Save this for later - you'll need it for environment variables
 
-### 1.3 Run Database Schema
+### 1.3 Create the Database Schema
 
-1. Open the Neon SQL Editor in your dashboard
-2. Copy the entire contents of `neon_db_schema.sql`
-3. Paste it into the SQL Editor
-4. Click **"Run"** to execute the schema
-5. Verify tables were created by running:
-   ```sql
-   SELECT table_name FROM information_schema.tables 
-   WHERE table_schema = 'public';
-   ```
+The schema is managed by **Alembic migrations** (in `migrations/`). After you've
+set `DATABASE_URL` in your environment and installed dependencies, create all
+tables with:
+
+```bash
+alembic upgrade head
+python scripts/seed_database.py   # default roles, admin user, company settings
+```
+
+Verify the tables were created by running this in the Neon SQL Editor:
+```sql
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public';
+```
 
 ---
 
@@ -117,7 +122,7 @@ EOF
 ### 2.4 Copy All Provided Files
 
 Copy these files into your project directory:
-- `neon_db_schema.sql`
+- `migrations/` (Alembic schema)
 - `.env.example`
 - `requirements.txt`
 - `vercel.json`

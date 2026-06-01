@@ -17,16 +17,14 @@ load_dotenv()
 # Initialize Flask app
 app = Flask(__name__)
 
-# Configuration
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'dev-jwt-secret')
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = int(os.getenv('JWT_ACCESS_TOKEN_EXPIRES', 3600))
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ECHO'] = os.getenv('DEBUG', '0') == '1'
+# Configuration — load the full Config class (DB, JWT, mail, storage, Stripe,
+# company branding, ZAR/VAT localisation) from a single source of truth.
+from config.config import config as config_map
+config_env = os.getenv('FLASK_ENV', 'production' if os.getenv('DEBUG', '0') != '1' else 'development')
+app.config.from_object(config_map.get(config_env, config_map['default']))
 
 # Initialize extensions
-CORS(app, resources={r"/api/*": {"origins": os.getenv('CORS_ORIGINS', '*').split(',')}})
+CORS(app, resources={r"/api/*": {"origins": app.config['CORS_ORIGINS'].split(',')}})
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 limiter = Limiter(
@@ -35,15 +33,6 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour"]
 )
 
-# Email config
-app.config.update(
-    MAIL_SERVER=os.getenv('MAIL_SERVER', 'smtp.gmail.com'),
-    MAIL_PORT=int(os.getenv('MAIL_PORT', 587)),
-    MAIL_USE_TLS=os.getenv('MAIL_USE_TLS', '1') == '1',
-    MAIL_USERNAME=os.getenv('MAIL_USERNAME'),
-    MAIL_PASSWORD=os.getenv('MAIL_PASSWORD'),
-    MAIL_DEFAULT_SENDER=os.getenv('MAIL_DEFAULT_SENDER', 'noreply@rephina.com')
-)
 from app.services.email_service import mail
 mail.init_app(app)
 
@@ -65,10 +54,7 @@ from app.routes.customers import customers_bp
 from app.routes.leads import leads_bp
 from app.routes.opportunities import opportunities_bp
 from app.routes.products import products_bp
-from app.routes.inventory import inventory_bp
 from app.routes.sales import sales_bp
-from app.routes.procurement import procurement_bp
-from app.routes.suppliers import suppliers_bp
 from app.routes.accounting import accounting_bp
 from app.routes.invoices import invoices_bp
 from app.routes.payments import payments_bp
@@ -93,10 +79,7 @@ app.register_blueprint(customers_bp, url_prefix='/api/customers')
 app.register_blueprint(leads_bp, url_prefix='/api/leads')
 app.register_blueprint(opportunities_bp, url_prefix='/api/opportunities')
 app.register_blueprint(products_bp, url_prefix='/api/products')
-app.register_blueprint(inventory_bp, url_prefix='/api/inventory')
 app.register_blueprint(sales_bp, url_prefix='/api/sales')
-app.register_blueprint(procurement_bp, url_prefix='/api/procurement')
-app.register_blueprint(suppliers_bp, url_prefix='/api/suppliers')
 app.register_blueprint(accounting_bp, url_prefix='/api/accounting')
 app.register_blueprint(invoices_bp, url_prefix='/api/invoices')
 app.register_blueprint(payments_bp, url_prefix='/api/payments')
@@ -169,11 +152,7 @@ def list_view(view_name):
         'opportunities': {'title': 'Opportunities', 'endpoint': '/opportunities', 'key': 'opportunities'},
         'sales': {'title': 'Sales Orders', 'endpoint': '/sales/orders', 'key': 'orders'},
         'quotations': {'title': 'Quotations', 'endpoint': '/sales/quotations', 'key': 'quotations'},
-        'products': {'title': 'Products', 'endpoint': '/products', 'key': 'products'},
-        'inventory': {'title': 'Stock Levels', 'endpoint': '/inventory', 'key': 'items'},
-        'warehouses': {'title': 'Warehouses', 'endpoint': '/inventory/warehouses', 'key': 'warehouses'},
-        'procurement': {'title': 'Purchase Orders', 'endpoint': '/procurement/purchase-orders', 'key': 'orders'},
-        'suppliers': {'title': 'Suppliers', 'endpoint': '/suppliers', 'key': 'suppliers'},
+        'products': {'title': 'Services', 'endpoint': '/products', 'key': 'products'},
         'accounting': {'title': 'Chart of Accounts', 'endpoint': '/accounting/accounts', 'key': 'accounts'},
         'journal_entries': {'title': 'Journal Entries', 'endpoint': '/accounting/journal-entries', 'key': 'entries'},
         'invoices': {'title': 'Invoices', 'endpoint': '/invoices', 'key': 'invoices'},
@@ -213,10 +192,9 @@ def list_view(view_name):
 def create_page(module_name):
     VIEW_TITLES = {
         'projects': 'Project', 'tasks': 'Task', 'customers': 'Customer', 'leads': 'Lead',
-        'opportunities': 'Opportunity', 'products': 'Product', 'inventory': 'Inventory Item',
-        'warehouses': 'Warehouse', 'suppliers': 'Supplier', 'hr': 'Employee', 'invoices': 'Invoice',
+        'opportunities': 'Opportunity', 'products': 'Service', 'hr': 'Employee', 'invoices': 'Invoice',
         'expenses': 'Expense', 'tickets': 'Support Ticket', 'schedule': 'Event', 'documents': 'Document',
-        'sales': 'Sales Order', 'quotations': 'Quotation', 'procurement': 'Purchase Order',
+        'sales': 'Sales Order', 'quotations': 'Quotation',
         'accounting': 'Account', 'journal_entries': 'Journal Entry', 'attendance': 'Attendance',
         'leaves': 'Leave Request', 'performance': 'Performance Review', 'users': 'User',
         'time-tracking': 'Time Entry', 'payments': 'Payment', 'notifications': 'Notification', 'reports': 'Report'
@@ -232,10 +210,7 @@ def api_index():
         'version': '1.0',
         'endpoints': {
             'products': '/api/products',
-            'inventory': '/api/inventory',
             'sales': '/api/sales',
-            'procurement': '/api/procurement',
-            'suppliers': '/api/suppliers',
             'accounting': '/api/accounting',
             'invoices': '/api/invoices',
             'payments': '/api/payments',

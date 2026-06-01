@@ -16,8 +16,8 @@ def init_db(app):
     with app.app_context():
         # Import all models here to ensure they're registered
         from app.models import (
-            user, project, task, customer, product, 
-            inventory, sales, purchase, accounting, hr, ticket
+            user, project, task, customer, product,
+            sales, accounting, hr, ticket
         )
         
         # Create all tables (for development only)

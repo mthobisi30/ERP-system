@@ -14,6 +14,9 @@ class Config:
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'dev-jwt-secret-key')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(seconds=int(os.getenv('JWT_ACCESS_TOKEN_EXPIRES', 3600)))
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(seconds=int(os.getenv('JWT_REFRESH_TOKEN_EXPIRES', 2592000)))
+
+    # CORS
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', '*')
     
     # File Upload
     MAX_CONTENT_LENGTH = int(os.getenv('MAX_CONTENT_LENGTH', 16777216))  # 16MB
@@ -29,7 +32,7 @@ class Config:
     MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', '1') == '1'
     MAIL_USERNAME = os.getenv('MAIL_USERNAME')
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', 'noreply@erp.com')
+    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', 'noreply@rephinasoftware.com')
     
     # Redis (Cache)
     REDIS_URL = os.getenv('REDIS_URL')
@@ -57,9 +60,19 @@ class Config:
     
     # Company
     COMPANY_NAME = os.getenv('COMPANY_NAME', 'Rephina Software')
-    COMPANY_EMAIL = os.getenv('COMPANY_EMAIL', 'contact@rephina.com')
-    DEFAULT_CURRENCY = os.getenv('DEFAULT_CURRENCY', 'USD')
-    TIMEZONE = os.getenv('TIMEZONE', 'UTC')
+    COMPANY_EMAIL = os.getenv('COMPANY_EMAIL', 'contact@rephinasoftware.com')
+    COMPANY_WEBSITE = os.getenv('COMPANY_WEBSITE', 'https://www.rephinasoftware.com')
+
+    # Localisation (South Africa defaults)
+    DEFAULT_CURRENCY = os.getenv('DEFAULT_CURRENCY', 'ZAR')
+    CURRENCY_SYMBOL = os.getenv('CURRENCY_SYMBOL', 'R')
+    TIMEZONE = os.getenv('TIMEZONE', 'Africa/Johannesburg')
+    LOCALE = os.getenv('LOCALE', 'en_ZA')
+
+    # VAT (South African VAT is 15%)
+    VAT_ENABLED = os.getenv('VAT_ENABLED', '1') == '1'
+    VAT_RATE = float(os.getenv('VAT_RATE', '15.0'))  # percent
+    VAT_REGISTRATION_NUMBER = os.getenv('VAT_REGISTRATION_NUMBER', '')
 
 class DevelopmentConfig(Config):
     """Development configuration"""

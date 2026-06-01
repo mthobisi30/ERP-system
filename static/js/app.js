@@ -532,16 +532,12 @@ const VIEW_SCHEMAS = {
     'projects': { title: 'Project', fields: [ {id: 'name', label: 'Name'}, {id: 'customer_id', label: 'Customer ID (UUID)'}, {id: 'status', label: 'Status', type: 'select', options: ['active', 'paused', 'completed']} ] },
     'tasks': { title: 'Task', fields: [ {id: 'title', label: 'Title'}, {id: 'project_id', label: 'Project ID (UUID)'}, {id: 'status', label: 'Status', type: 'select', options: ['todo', 'in_progress', 'done']}, {id: 'due_date', label: 'Due Date', type: 'date'} ] },
     'users': { title: 'User', fields: [ {id: 'username', label: 'Username'}, {id: 'email', label: 'Email', type: 'email'}, {id: 'role', label: 'Role', type: 'select', options: ['admin', 'manager', 'employee']} ] },
-    'inventory': { title: 'Inventory Item', fields: [ {id: 'product_id', label: 'Product ID (UUID)'}, {id: 'warehouse_id', label: 'Warehouse ID (UUID)'}, {id: 'quantity_on_hand', label: 'Quantity', type: 'number'} ] },
-    'products': { title: 'Product', fields: [ {id: 'name', label: 'Product Name'}, {id: 'sku', label: 'SKU'}, {id: 'unit_price', label: 'Price', type: 'number'} ] },
+    'products': { title: 'Service', fields: [ {id: 'name', label: 'Service Name'}, {id: 'unit_price', label: 'Day/Hour Rate (R)', type: 'number'} ] },
     'customers': { title: 'Customer', fields: [ {id: 'name', label: 'Company Name'}, {id: 'email', label: 'Email'}, {id: 'phone', label: 'Phone'} ] },
     'hr': { title: 'Employee', fields: [ {id: 'first_name', label: 'First Name'}, {id: 'last_name', label: 'Last Name'}, {id: 'position', label: 'Position'} ] },
     'leads': { title: 'Lead', fields: [ {id: 'name', label: 'Lead Name'}, {id: 'email', label: 'Email'}, {id: 'status', label: 'Status', type: 'select', options: ['new', 'contacted', 'qualified', 'lost']} ] },
     'opportunities': { title: 'Opportunity', fields: [ {id: 'name', label: 'Opportunity Name'}, {id: 'amount', label: 'Estimated Value', type: 'number'}, {id: 'stage', label: 'Stage', type: 'select', options: ['discovery', 'proposal', 'negotiation', 'closed_won', 'closed_lost']} ] },
-    'suppliers': { title: 'Supplier', fields: [ {id: 'name', label: 'Supplier Name'}, {id: 'contact_person', label: 'Contact Person'}, {id: 'email', label: 'Email'} ] },
-    'warehouses': { title: 'Warehouse', fields: [ {id: 'name', label: 'Warehouse Name'}, {id: 'code', label: 'Code'} ] },
     'tickets': { title: 'Support Ticket', fields: [ {id: 'subject', label: 'Subject'}, {id: 'priority', label: 'Priority', type: 'select', options: ['low', 'medium', 'high', 'urgent']} ] },
-    'procurement': { title: 'Purchase Order', fields: [ {id: 'supplier_id', label: 'Supplier ID'}, {id: 'total_amount', label: 'Amount', type: 'number'}, {id: 'status', label: 'Status', type: 'select', options: ['draft', 'ordered', 'received', 'cancelled']} ] },
     'accounting': { title: 'Account', fields: [{id: 'name', label: 'Account Name'}, {id: 'code', label: 'Account Code'}, {id: 'type', label: 'Type', type: 'select', options: ['asset', 'liability', 'equity', 'revenue', 'expense']}] },
     'journal_entries': { title: 'Journal Entry', fields: [{id: 'ref_number', label: 'Reference'}, {id: 'description', label: 'Description'}, {id: 'date', label: 'Date', type: 'date'}] },
     'attendance': { title: 'Attendance Record', fields: [{id: 'employee_id', label: 'Employee ID'}, {id: 'check_in', label: 'Check In', type: 'datetime-local'}, {id: 'status', label: 'Status', type: 'select', options: ['present', 'late', 'absent']}] },
@@ -555,7 +551,7 @@ const VIEW_SCHEMAS = {
     'performance': { title: 'Performance Review', fields: [{id: 'employee_id', label: 'Employee ID'}, {id: 'rating', label: 'Rating (1-5)', type: 'number'}] },
     'time-tracking': { title: 'Time Entry', fields: [{id: 'employee_id', label: 'Employee ID'}, {id: 'hours', label: 'Hours', type: 'number'}, {id: 'date', label: 'Date', type: 'date'}] },
     'notifications': { title: 'Notification', fields: [{id: 'title', label: 'Title'}, {id: 'message', label: 'Message'}] },
-    'reports': { title: 'Report', fields: [{id: 'name', label: 'Report Name'}, {id: 'type', label: 'Type', type: 'select', options: ['sales', 'inventory', 'financial', 'hr']}] },
+    'reports': { title: 'Report', fields: [{id: 'name', label: 'Report Name'}, {id: 'type', label: 'Type', type: 'select', options: ['financial', 'projects', 'time', 'utilization', 'hr']}] },
     'logs': { title: 'Log Entry', fields: [{id: 'action', label: 'Action'}, {id: 'user_id', label: 'User ID'}] },
     'settings': { title: 'Setting', fields: [{id: 'key', label: 'Setting Key'}, {id: 'value', label: 'Value'}] }
 };
@@ -576,19 +572,6 @@ window.closeModal = function(modalId) {
 
 // Tool Submit Handlers
 const initToolHandlers = () => {
-    const stockForm = document.getElementById('stock-form');
-    if (stockForm) {
-        stockForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
-            try {
-                const res = await fetch(`${API_BASE}/inventory/movement`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(data)});
-                if(res.ok) { alert('Stock updated!'); window.location.href='/inventory'; } else { alert('Error updating stock'); }
-            } catch(e) { alert('Error'); }
-        });
-    }
-
     const expenseForm = document.getElementById('expense-form');
     if (expenseForm) {
         expenseForm.addEventListener('submit', async (e) => {

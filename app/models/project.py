@@ -13,10 +13,16 @@ class Project(db.Model):
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     project_code = db.Column(db.String(50), unique=True)
+    customer_id = db.Column(UUID(as_uuid=True), db.ForeignKey('customers.id'))
+    opportunity_id = db.Column(UUID(as_uuid=True), db.ForeignKey('opportunities.id'))
     status = db.Column(db.String(50), default='planning')
     priority = db.Column(db.String(20), default='medium')
     project_manager_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'))
     department_id = db.Column(UUID(as_uuid=True), db.ForeignKey('departments.id'))
+    # Billing: fixed_price | time_and_materials | retainer
+    billing_type = db.Column(db.String(30), default='time_and_materials')
+    billing_rate = db.Column(db.Numeric(10, 2))  # fallback hourly rate for T&M
+    currency = db.Column(db.String(10), default='ZAR')
     budget = db.Column(db.Numeric(15, 2))
     actual_cost = db.Column(db.Numeric(15, 2), default=0)
     start_date = db.Column(db.Date)
@@ -32,14 +38,43 @@ class Project(db.Model):
             'name': self.name,
             'description': self.description,
             'project_code': self.project_code,
+            'customer_id': str(self.customer_id) if self.customer_id else None,
+            'opportunity_id': str(self.opportunity_id) if self.opportunity_id else None,
             'status': self.status,
             'priority': self.priority,
+            'billing_type': self.billing_type,
+            'billing_rate': float(self.billing_rate) if self.billing_rate else None,
+            'currency': self.currency,
             'budget': float(self.budget) if self.budget else None,
             'actual_cost': float(self.actual_cost) if self.actual_cost else None,
             'start_date': self.start_date.isoformat() if self.start_date else None,
             'end_date': self.end_date.isoformat() if self.end_date else None,
             'completion_percentage': self.completion_percentage,
             'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class Sprint(db.Model):
+    __tablename__ = 'sprints'
+
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    project_id = db.Column(UUID(as_uuid=True), db.ForeignKey('projects.id'), nullable=False)
+    name = db.Column(db.String(200), nullable=False)
+    goal = db.Column(db.Text)
+    status = db.Column(db.String(50), default='planned')  # planned | active | completed
+    start_date = db.Column(db.Date)
+    end_date = db.Column(db.Date)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'project_id': str(self.project_id),
+            'name': self.name,
+            'goal': self.goal,
+            'status': self.status,
+            'start_date': self.start_date.isoformat() if self.start_date else None,
+            'end_date': self.end_date.isoformat() if self.end_date else None
         }
 
 class ProjectTeam(db.Model):

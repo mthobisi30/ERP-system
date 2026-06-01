@@ -11,6 +11,7 @@ class Task(db.Model):
     description = db.Column(db.Text)
     task_code = db.Column(db.String(50), unique=True)
     project_id = db.Column(UUID(as_uuid=True), db.ForeignKey('projects.id'))
+    sprint_id = db.Column(UUID(as_uuid=True), db.ForeignKey('sprints.id'))
     milestone_id = db.Column(UUID(as_uuid=True), db.ForeignKey('milestones.id'))
     assigned_to = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'))
     created_by = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'))
