@@ -196,8 +196,8 @@ function renderDashboard(data) {
             <p class="text-gray-500">Here is what's happening at the agency today.</p>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-                <a href="/projects" class="p-4 bg-orange-50 rounded-xl border border-orange-100 hover:shadow-md transition-all group">
-                    <p class="text-xs font-bold text-orange-600 uppercase group-hover:text-primary-600">Active Projects</p>
+                <a href="/projects" class="p-4 bg-primary-50 rounded-xl border border-primary-100 hover:shadow-md transition-all group">
+                    <p class="text-xs font-bold text-primary-600 uppercase group-hover:text-primary-700">Active Projects</p>
                     <p class="text-2xl font-bold text-slate-800">${stats.active_projects || 0}</p>
                 </a>
                 <a href="/timesheet" class="p-4 bg-blue-50 rounded-xl border border-blue-100 hover:shadow-md transition-all group">
