@@ -22,7 +22,42 @@ class TimeEntry(db.Model):
     task_id = db.Column(UUID(as_uuid=True), db.ForeignKey('tasks.id'))
     project_id = db.Column(UUID(as_uuid=True), db.ForeignKey('projects.id'))
     description = db.Column(db.Text)
-    start_time = db.Column(db.DateTime, nullable=False)
+    # Day the work was done + decimal hours — the canonical billable measure.
+    entry_date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+    hours = db.Column(db.Numeric(6, 2), nullable=False, default=0)
+    # Optional clock-in/out (for live timers); not required for timesheet entry.
+    start_time = db.Column(db.DateTime)
     end_time = db.Column(db.DateTime)
-    duration_minutes = db.Column(db.Integer)
+    # Billing
+    billable = db.Column(db.Boolean, default=True, nullable=False)
+    bill_rate = db.Column(db.Numeric(10, 2))  # snapshot of the rate applied
+    status = db.Column(db.String(20), default='draft')  # draft | submitted | approved
+    invoiced = db.Column(db.Boolean, default=False, nullable=False)
+    invoice_id = db.Column(UUID(as_uuid=True), db.ForeignKey('invoices.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    @property
+    def amount(self):
+        """Billable value of this entry (hours x rate), or 0 if non-billable."""
+        if not self.billable or self.hours is None or self.bill_rate is None:
+            return 0
+        return float(self.hours) * float(self.bill_rate)
+
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'user_id': str(self.user_id),
+            'task_id': str(self.task_id) if self.task_id else None,
+            'project_id': str(self.project_id) if self.project_id else None,
+            'description': self.description,
+            'entry_date': self.entry_date.isoformat() if self.entry_date else None,
+            'hours': float(self.hours) if self.hours is not None else 0,
+            'billable': self.billable,
+            'bill_rate': float(self.bill_rate) if self.bill_rate is not None else None,
+            'amount': self.amount,
+            'status': self.status,
+            'invoiced': self.invoiced,
+            'invoice_id': str(self.invoice_id) if self.invoice_id else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }

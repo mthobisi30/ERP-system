@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from config.database import db
 from app.models.settings import CompanySettings
+from app.utils.decorators import admin_required
 
 settings_bp = Blueprint('settings', __name__)
 
@@ -14,7 +15,7 @@ def get_settings():
     return jsonify({'company_name': settings.company_name, 'email': settings.email, 'currency': settings.currency}), 200
 
 @settings_bp.route('', methods=['PUT'])
-@jwt_required()
+@admin_required
 def update_settings():
     settings = CompanySettings.query.first()
     if not settings:

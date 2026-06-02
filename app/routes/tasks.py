@@ -11,15 +11,12 @@ tasks_bp = Blueprint('tasks', __name__)
 def get_tasks():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
-    status = request.args.get('status')
-    assigned_to = request.args.get('assigned_to')
-    
+
     query = Task.query
-    if status:
-        query = query.filter_by(status=status)
-    if assigned_to:
-        query = query.filter_by(assigned_to=assigned_to)
-    
+    for field in ('status', 'assigned_to', 'project_id', 'sprint_id'):
+        if request.args.get(field):
+            query = query.filter(getattr(Task, field) == request.args.get(field))
+
     tasks = query.paginate(page=page, per_page=per_page)
     return jsonify({
         'tasks': [t.to_dict() for t in tasks.items],

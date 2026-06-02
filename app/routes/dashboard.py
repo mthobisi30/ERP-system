@@ -1,29 +1,57 @@
+from datetime import date, timedelta
+
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from config.database import db
 from sqlalchemy import func
 from app.models.project import Project
 from app.models.task import Task
-from app.models.sales import SalesOrder
 from app.models.customer import Customer
+from app.models.schedule import TimeEntry
+from app.models.accounting import Invoice
+from app.models.retainer import RetainerContract
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
 @dashboard_bp.route('/stats', methods=['GET'])
 @jwt_required()
 def get_dashboard_stats():
-    total_projects = Project.query.count()
+    today = date.today()
+    monday = today - timedelta(days=today.weekday())
+    open_statuses = ('paid', 'cancelled')
+
     active_projects = Project.query.filter_by(status='active').count()
-    total_tasks = Task.query.count()
     pending_tasks = Task.query.filter_by(status='todo').count()
     total_customers = Customer.query.count()
-    total_sales = db.session.query(func.sum(SalesOrder.total_amount)).scalar() or 0
-    
+
+    billable_hours_week = db.session.query(
+        func.coalesce(func.sum(TimeEntry.hours), 0)
+    ).filter(TimeEntry.billable.is_(True), TimeEntry.entry_date >= monday).scalar() or 0
+
+    unbilled_amount = db.session.query(
+        func.coalesce(func.sum(TimeEntry.hours * TimeEntry.bill_rate), 0)
+    ).filter(TimeEntry.billable.is_(True), TimeEntry.invoiced.is_(False),
+             TimeEntry.bill_rate.isnot(None)).scalar() or 0
+
+    outstanding_amount = db.session.query(
+        func.coalesce(func.sum(Invoice.total_amount - Invoice.paid_amount), 0)
+    ).filter(Invoice.status.notin_(open_statuses)).scalar() or 0
+
+    open_invoices = Invoice.query.filter(Invoice.status.notin_(open_statuses)).count()
+
+    mrr = db.session.query(
+        func.coalesce(func.sum(RetainerContract.monthly_fee), 0)
+    ).filter(RetainerContract.status == 'active').scalar() or 0
+
     return jsonify({
-        'projects': {'total': total_projects, 'active': active_projects},
-        'tasks': {'total': total_tasks, 'pending': pending_tasks},
+        'active_projects': active_projects,
+        'pending_tasks': pending_tasks,
         'customers': total_customers,
-        'sales': float(total_sales)
+        'billable_hours_week': float(billable_hours_week),
+        'unbilled_amount': float(unbilled_amount),
+        'outstanding_amount': float(outstanding_amount),
+        'open_invoices': open_invoices,
+        'mrr': float(mrr),
     }), 200
 
 @dashboard_bp.route('/recent-activity', methods=['GET'])

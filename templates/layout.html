@@ -94,28 +94,28 @@
             <a href="/tasks" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'tasks' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
                 <i class="fas fa-tasks w-5 text-center"></i> Tasks
             </a>
+            <a href="/board" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'board' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-columns w-5 text-center"></i> Task Board
+            </a>
+            <a href="/timesheet" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'timesheet' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-stopwatch w-5 text-center"></i> Timesheet
+            </a>
             <a href="/tickets" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'tickets' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
                 <i class="fas fa-headset w-5 text-center"></i> Support Tickets
             </a>
 
-            <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Inventory & Supply</div>
+            <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Catalog</div>
             <a href="/products" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'products' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
-                <i class="fas fa-box w-5 text-center"></i> Products
-            </a>
-            <a href="/inventory" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'inventory' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
-                <i class="fas fa-boxes w-5 text-center"></i> Stock Levels
-            </a>
-            <a href="/warehouses" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'warehouses' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
-                <i class="fas fa-warehouse w-5 text-center"></i> Warehouses
-            </a>
-            <a href="/procurement" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'procurement' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
-                <i class="fas fa-cart-shopping w-5 text-center"></i> Procurement
-            </a>
-            <a href="/suppliers" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'suppliers' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
-                <i class="fas fa-truck-field w-5 text-center"></i> Suppliers
+                <i class="fas fa-list-check w-5 text-center"></i> Services &amp; Rates
             </a>
 
             <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Finance</div>
+            <a href="/billing" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'billing' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-bolt w-5 text-center"></i> Billing
+            </a>
+            <a href="/retainers" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'retainers' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-rotate w-5 text-center"></i> Retainers
+            </a>
             <a href="/invoices" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'invoices' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
                 <i class="fas fa-file-invoice-dollar w-5 text-center"></i> Invoices
             </a>

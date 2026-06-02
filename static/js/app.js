@@ -116,8 +116,12 @@ function renderTable(containerId, list, title) {
             return `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${val}</td>`;
         }).join('');
 
+        const viewBtn = VIEW_KEY === 'projects'
+            ? `<a href="/projects/${item.id}" title="Open workspace" class="text-gray-400 hover:text-primary-600 mr-3 transition-colors"><i class="fas fa-up-right-from-square"></i></a>`
+            : '';
         const actions = `
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                ${viewBtn}
                 <button onclick="window.openEditModal('${VIEW_KEY}', '${item.id}')" class="text-primary-600 hover:text-primary-900 mr-3 transition-colors">
                     <i class="fas fa-edit"></i>
                 </button>
@@ -185,27 +189,32 @@ function renderDashboard(data) {
     // Check if we have the stats data (the initial load)
     const stats = data.stats || data; // Handle both direct and nested data
     
+    const R = n => 'R ' + Number(n || 0).toLocaleString('en-ZA', {minimumFractionDigits: 0, maximumFractionDigits: 0});
     container.innerHTML = `
         <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome back, Admin! 👋</h2>
-            <p class="text-gray-500">Here is what's happening with your business today.</p>
-            
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome back! 👋</h2>
+            <p class="text-gray-500">Here is what's happening at the agency today.</p>
+
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
                 <a href="/projects" class="p-4 bg-orange-50 rounded-xl border border-orange-100 hover:shadow-md transition-all group">
                     <p class="text-xs font-bold text-orange-600 uppercase group-hover:text-primary-600">Active Projects</p>
-                    <p class="text-2xl font-bold text-slate-800">${stats.projects?.active || 0}</p>
+                    <p class="text-2xl font-bold text-slate-800">${stats.active_projects || 0}</p>
                 </a>
-                <a href="/tasks" class="p-4 bg-blue-50 rounded-xl border border-blue-100 hover:shadow-md transition-all group">
-                    <p class="text-xs font-bold text-blue-600 uppercase group-hover:text-blue-700">Pending Tasks</p>
-                    <p class="text-2xl font-bold text-slate-800">${stats.tasks?.pending || 0}</p>
+                <a href="/timesheet" class="p-4 bg-blue-50 rounded-xl border border-blue-100 hover:shadow-md transition-all group">
+                    <p class="text-xs font-bold text-blue-600 uppercase group-hover:text-blue-700">Billable Hours (wk)</p>
+                    <p class="text-2xl font-bold text-slate-800">${stats.billable_hours_week || 0}h</p>
                 </a>
-                <a href="/customers" class="p-4 bg-green-50 rounded-xl border border-green-100 hover:shadow-md transition-all group">
-                    <p class="text-xs font-bold text-green-600 uppercase group-hover:text-green-700">Total Customers</p>
-                    <p class="text-2xl font-bold text-slate-800">${stats.customers || 0}</p>
+                <a href="/billing" class="p-4 bg-green-50 rounded-xl border border-green-100 hover:shadow-md transition-all group">
+                    <p class="text-xs font-bold text-green-600 uppercase group-hover:text-green-700">Unbilled Value</p>
+                    <p class="text-2xl font-bold text-slate-800">${R(stats.unbilled_amount)}</p>
                 </a>
-                <a href="/sales" class="p-4 bg-purple-50 rounded-xl border border-purple-100 hover:shadow-md transition-all group">
-                    <p class="text-xs font-bold text-purple-600 uppercase group-hover:text-purple-700">Total Sales</p>
-                    <p class="text-2xl font-bold text-slate-800">$${(stats.sales || 0).toLocaleString()}</p>
+                <a href="/invoices" class="p-4 bg-purple-50 rounded-xl border border-purple-100 hover:shadow-md transition-all group">
+                    <p class="text-xs font-bold text-purple-600 uppercase group-hover:text-purple-700">Outstanding (${stats.open_invoices || 0})</p>
+                    <p class="text-2xl font-bold text-slate-800">${R(stats.outstanding_amount)}</p>
+                </a>
+                <a href="/retainers" class="p-4 bg-teal-50 rounded-xl border border-teal-100 hover:shadow-md transition-all group">
+                    <p class="text-xs font-bold text-teal-600 uppercase group-hover:text-teal-700">Recurring (MRR)</p>
+                    <p class="text-2xl font-bold text-slate-800">${R(stats.mrr)}</p>
                 </a>
             </div>
         </div>
@@ -532,16 +541,12 @@ const VIEW_SCHEMAS = {
     'projects': { title: 'Project', fields: [ {id: 'name', label: 'Name'}, {id: 'customer_id', label: 'Customer ID (UUID)'}, {id: 'status', label: 'Status', type: 'select', options: ['active', 'paused', 'completed']} ] },
     'tasks': { title: 'Task', fields: [ {id: 'title', label: 'Title'}, {id: 'project_id', label: 'Project ID (UUID)'}, {id: 'status', label: 'Status', type: 'select', options: ['todo', 'in_progress', 'done']}, {id: 'due_date', label: 'Due Date', type: 'date'} ] },
     'users': { title: 'User', fields: [ {id: 'username', label: 'Username'}, {id: 'email', label: 'Email', type: 'email'}, {id: 'role', label: 'Role', type: 'select', options: ['admin', 'manager', 'employee']} ] },
-    'inventory': { title: 'Inventory Item', fields: [ {id: 'product_id', label: 'Product ID (UUID)'}, {id: 'warehouse_id', label: 'Warehouse ID (UUID)'}, {id: 'quantity_on_hand', label: 'Quantity', type: 'number'} ] },
-    'products': { title: 'Product', fields: [ {id: 'name', label: 'Product Name'}, {id: 'sku', label: 'SKU'}, {id: 'unit_price', label: 'Price', type: 'number'} ] },
+    'products': { title: 'Service', fields: [ {id: 'name', label: 'Service Name'}, {id: 'unit_price', label: 'Day/Hour Rate (R)', type: 'number'} ] },
     'customers': { title: 'Customer', fields: [ {id: 'name', label: 'Company Name'}, {id: 'email', label: 'Email'}, {id: 'phone', label: 'Phone'} ] },
     'hr': { title: 'Employee', fields: [ {id: 'first_name', label: 'First Name'}, {id: 'last_name', label: 'Last Name'}, {id: 'position', label: 'Position'} ] },
     'leads': { title: 'Lead', fields: [ {id: 'name', label: 'Lead Name'}, {id: 'email', label: 'Email'}, {id: 'status', label: 'Status', type: 'select', options: ['new', 'contacted', 'qualified', 'lost']} ] },
     'opportunities': { title: 'Opportunity', fields: [ {id: 'name', label: 'Opportunity Name'}, {id: 'amount', label: 'Estimated Value', type: 'number'}, {id: 'stage', label: 'Stage', type: 'select', options: ['discovery', 'proposal', 'negotiation', 'closed_won', 'closed_lost']} ] },
-    'suppliers': { title: 'Supplier', fields: [ {id: 'name', label: 'Supplier Name'}, {id: 'contact_person', label: 'Contact Person'}, {id: 'email', label: 'Email'} ] },
-    'warehouses': { title: 'Warehouse', fields: [ {id: 'name', label: 'Warehouse Name'}, {id: 'code', label: 'Code'} ] },
     'tickets': { title: 'Support Ticket', fields: [ {id: 'subject', label: 'Subject'}, {id: 'priority', label: 'Priority', type: 'select', options: ['low', 'medium', 'high', 'urgent']} ] },
-    'procurement': { title: 'Purchase Order', fields: [ {id: 'supplier_id', label: 'Supplier ID'}, {id: 'total_amount', label: 'Amount', type: 'number'}, {id: 'status', label: 'Status', type: 'select', options: ['draft', 'ordered', 'received', 'cancelled']} ] },
     'accounting': { title: 'Account', fields: [{id: 'name', label: 'Account Name'}, {id: 'code', label: 'Account Code'}, {id: 'type', label: 'Type', type: 'select', options: ['asset', 'liability', 'equity', 'revenue', 'expense']}] },
     'journal_entries': { title: 'Journal Entry', fields: [{id: 'ref_number', label: 'Reference'}, {id: 'description', label: 'Description'}, {id: 'date', label: 'Date', type: 'date'}] },
     'attendance': { title: 'Attendance Record', fields: [{id: 'employee_id', label: 'Employee ID'}, {id: 'check_in', label: 'Check In', type: 'datetime-local'}, {id: 'status', label: 'Status', type: 'select', options: ['present', 'late', 'absent']}] },
@@ -555,7 +560,7 @@ const VIEW_SCHEMAS = {
     'performance': { title: 'Performance Review', fields: [{id: 'employee_id', label: 'Employee ID'}, {id: 'rating', label: 'Rating (1-5)', type: 'number'}] },
     'time-tracking': { title: 'Time Entry', fields: [{id: 'employee_id', label: 'Employee ID'}, {id: 'hours', label: 'Hours', type: 'number'}, {id: 'date', label: 'Date', type: 'date'}] },
     'notifications': { title: 'Notification', fields: [{id: 'title', label: 'Title'}, {id: 'message', label: 'Message'}] },
-    'reports': { title: 'Report', fields: [{id: 'name', label: 'Report Name'}, {id: 'type', label: 'Type', type: 'select', options: ['sales', 'inventory', 'financial', 'hr']}] },
+    'reports': { title: 'Report', fields: [{id: 'name', label: 'Report Name'}, {id: 'type', label: 'Type', type: 'select', options: ['financial', 'projects', 'time', 'utilization', 'hr']}] },
     'logs': { title: 'Log Entry', fields: [{id: 'action', label: 'Action'}, {id: 'user_id', label: 'User ID'}] },
     'settings': { title: 'Setting', fields: [{id: 'key', label: 'Setting Key'}, {id: 'value', label: 'Value'}] }
 };
@@ -576,19 +581,6 @@ window.closeModal = function(modalId) {
 
 // Tool Submit Handlers
 const initToolHandlers = () => {
-    const stockForm = document.getElementById('stock-form');
-    if (stockForm) {
-        stockForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
-            try {
-                const res = await fetch(`${API_BASE}/inventory/movement`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(data)});
-                if(res.ok) { alert('Stock updated!'); window.location.href='/inventory'; } else { alert('Error updating stock'); }
-            } catch(e) { alert('Error'); }
-        });
-    }
-
     const expenseForm = document.getElementById('expense-form');
     if (expenseForm) {
         expenseForm.addEventListener('submit', async (e) => {
@@ -673,6 +665,18 @@ window.deleteRecord = async function(viewKey, id) {
             alert('Error: ' + (err.error || 'Failed to delete'));
         }
     } catch (err) { alert('Connection error'); }
+};
+
+// Open an authenticated PDF endpoint in a new tab (sends the JWT header,
+// then opens the returned blob — a plain link can't attach the token).
+window.openPdf = async function(url) {
+    try {
+        const r = await fetch(url, { headers: getHeaders() });
+        if (!r.ok) { alert('Could not load PDF'); return; }
+        const blobUrl = URL.createObjectURL(await r.blob());
+        window.open(blobUrl, '_blank');
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+    } catch (e) { alert('Error loading PDF'); }
 };
 
 // Generic Open Modal (for Tools page etc)

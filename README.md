@@ -13,10 +13,9 @@ A full-featured Enterprise Resource Planning (ERP) system built with Python Flas
 - 🎯 **Project Management** - Project tracking, milestones, budgets
 - 👥 **Customer Relationship Management (CRM)** - Leads, opportunities, customer database
 - 💼 **Sales Management** - Quotations, sales orders, pipeline tracking
-- 📦 **Inventory Management** - Stock tracking, warehouses, stock movements
-- 🛒 **Procurement** - Purchase orders, supplier management
-- 📦 **Product Information Management** - Product catalog, categories, pricing
-- 💰 **Accounting & Finance** - General ledger, invoicing, payments, expenses
+- ⏱️ **Time Tracking** - Billable hours per project, timesheets
+- 🧾 **Services & Rate Card** - Service catalog and billing rates
+- 💰 **Accounting & Finance** - General ledger, invoicing (ZAR + 15% VAT), payments, expenses
 - 👨‍💼 **HR & Performance** - Employee records, performance reviews, attendance
 - 🎫 **Customer Service** - Ticket management, support tracking
 - 📈 **Reports & Analytics** - Custom reports, data export, visualizations
@@ -48,7 +47,6 @@ erp-system/
 ├── vercel.json            # Vercel configuration
 ├── requirements.txt       # Python dependencies
 ├── .env.example          # Environment template
-├── neon_db_schema.sql    # Database schema
 ├── config/               # App configuration
 ├── app/
 │   ├── models/          # Database models
@@ -80,11 +78,10 @@ cd erp-system
 ### 2. Set Up Database
 
 1. Create a Neon PostgreSQL database at https://console.neon.tech/
-2. Copy your database connection string
-3. Run the schema:
-   - Open Neon SQL Editor
-   - Paste contents of `neon_db_schema.sql`
-   - Execute
+2. Copy your database connection string (you'll set it as `DATABASE_URL` below)
+
+> The schema is managed by **Alembic migrations** (`migrations/`), not a hand-maintained
+> SQL file. You'll create the tables with `alembic upgrade head` in step 5.
 
 ### 3. Configure Environment
 
@@ -112,10 +109,20 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 5. Run Locally
+### 5. Create the Schema & Seed
 
 ```bash
-python app.py
+# Create all tables from the migrations
+alembic upgrade head
+
+# Seed default roles, an admin user, and company settings
+python scripts/seed_database.py
+```
+
+### 6. Run Locally
+
+```bash
+python index.py
 ```
 
 Visit http://localhost:5000
@@ -141,7 +148,7 @@ See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for detailed instructions.
 
 - [Deployment Guide](DEPLOYMENT_GUIDE.md) - Complete deployment instructions
 - [Project Structure](PROJECT_STRUCTURE.md) - Detailed project organization
-- Database Schema - See `neon_db_schema.sql`
+- Database Schema - Managed via Alembic migrations in `migrations/`
 
 ## 🔒 Security Features
 
@@ -218,21 +225,25 @@ The API is framework-agnostic and works with any frontend!
 
 ### Running Tests
 
+The suite runs against a real Postgres database (the models use native `UUID`/`JSONB`).
+
 ```bash
-pytest tests/
+# Easiest — spins up a throwaway Postgres, runs pytest, tears it down. No setup.
+./scripts/run_tests.sh
+./scripts/run_tests.sh -v tests/test_billing_spine.py   # args pass through to pytest
+
+# Or against a database you provide (suite is skipped if this is unset):
+TEST_DATABASE_URL=postgresql://user:pass@host/dbname pytest
 ```
 
-### Database Migrations
+CI runs the full suite on Postgres on every push — see [.github/workflows/tests.yml](.github/workflows/tests.yml).
+
+### Database Migrations (Alembic)
 
 ```bash
-# Create migration
-flask db migrate -m "Description"
-
-# Apply migration
-flask db upgrade
-
-# Rollback
-flask db downgrade
+alembic upgrade head                            # apply all migrations (creates the schema)
+alembic revision --autogenerate -m "message"    # generate a migration from model changes
+alembic downgrade -1                            # roll back one migration
 ```
 
 ### Code Quality

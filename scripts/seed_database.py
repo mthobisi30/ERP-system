@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Database Seeding Script"""
+import os
 import sys
-sys.path.insert(0, '/home/claude/erp-system')
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import app
+from index import app
 from config.database import db
 from app.models.user import User, Role
 from app.models.settings import CompanySettings
