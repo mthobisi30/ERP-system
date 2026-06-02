@@ -225,21 +225,25 @@ The API is framework-agnostic and works with any frontend!
 
 ### Running Tests
 
+The suite runs against a real Postgres database (the models use native `UUID`/`JSONB`).
+
 ```bash
-pytest tests/
+# Easiest — spins up a throwaway Postgres, runs pytest, tears it down. No setup.
+./scripts/run_tests.sh
+./scripts/run_tests.sh -v tests/test_billing_spine.py   # args pass through to pytest
+
+# Or against a database you provide (suite is skipped if this is unset):
+TEST_DATABASE_URL=postgresql://user:pass@host/dbname pytest
 ```
 
-### Database Migrations
+CI runs the full suite on Postgres on every push — see [.github/workflows/tests.yml](.github/workflows/tests.yml).
+
+### Database Migrations (Alembic)
 
 ```bash
-# Create migration
-flask db migrate -m "Description"
-
-# Apply migration
-flask db upgrade
-
-# Rollback
-flask db downgrade
+alembic upgrade head                            # apply all migrations (creates the schema)
+alembic revision --autogenerate -m "message"    # generate a migration from model changes
+alembic downgrade -1                            # roll back one migration
 ```
 
 ### Code Quality

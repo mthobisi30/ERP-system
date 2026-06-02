@@ -96,19 +96,53 @@ class Payment(db.Model):
     __tablename__ = 'payments'
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     payment_number = db.Column(db.String(50), unique=True, nullable=False)
-    payment_type = db.Column(db.String(50))
+    payment_type = db.Column(db.String(50), default='customer')  # customer | refund
     customer_id = db.Column(UUID(as_uuid=True), db.ForeignKey('customers.id'))
-    payment_date = db.Column(db.Date, nullable=False)
+    invoice_id = db.Column(UUID(as_uuid=True), db.ForeignKey('invoices.id'))
+    payment_date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
     amount = db.Column(db.Numeric(15, 2), nullable=False)
     payment_method = db.Column(db.String(50))
+    reference = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'payment_number': self.payment_number,
+            'payment_type': self.payment_type,
+            'customer_id': str(self.customer_id) if self.customer_id else None,
+            'invoice_id': str(self.invoice_id) if self.invoice_id else None,
+            'payment_date': self.payment_date.isoformat() if self.payment_date else None,
+            'amount': float(self.amount) if self.amount is not None else 0,
+            'payment_method': self.payment_method,
+            'reference': self.reference,
+        }
 
 class Expense(db.Model):
     __tablename__ = 'expenses'
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     expense_number = db.Column(db.String(50), unique=True)
+    project_id = db.Column(UUID(as_uuid=True), db.ForeignKey('projects.id'))
+    description = db.Column(db.Text)
     expense_date = db.Column(db.Date, nullable=False)
     category = db.Column(db.String(100))
     amount = db.Column(db.Numeric(15, 2), nullable=False)
-    status = db.Column(db.String(50), default='pending')
+    # billable = rechargeable to the client (passthrough); else it's an internal cost.
+    billable = db.Column(db.Boolean, default=False, nullable=False)
+    status = db.Column(db.String(50), default='pending')  # pending | approved | rejected
+    created_by = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'))
+    approved_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'expense_number': self.expense_number,
+            'project_id': str(self.project_id) if self.project_id else None,
+            'description': self.description,
+            'expense_date': self.expense_date.isoformat() if self.expense_date else None,
+            'category': self.category,
+            'amount': float(self.amount) if self.amount is not None else 0,
+            'billable': self.billable,
+            'status': self.status,
+        }

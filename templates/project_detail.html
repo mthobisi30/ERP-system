@@ -1,0 +1,194 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+  <a href="/projects" class="text-sm text-gray-500 hover:text-primary-600"><i class="fas fa-arrow-left mr-1"></i> Back to projects</a>
+
+  <!-- Overview -->
+  <div id="overview" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+    <div class="text-center text-gray-400 text-sm">Loading…</div>
+  </div>
+
+  <!-- Profitability + unbilled -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4" id="metric-cards"></div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Sprints -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100"><h3 class="font-semibold text-gray-900"><i class="fas fa-flag-checkered text-primary-500 mr-2"></i>Sprints</h3></div>
+      <div class="p-4">
+        <form id="sprint-form" class="flex gap-2 mb-3">
+          <input id="sprint-name" placeholder="Sprint name" required class="flex-1 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+          <button class="px-3 py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700">Add</button>
+        </form>
+        <div id="sprints"></div>
+      </div>
+    </div>
+
+    <!-- Tasks -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100"><h3 class="font-semibold text-gray-900"><i class="fas fa-tasks text-primary-500 mr-2"></i>Tasks</h3></div>
+      <div class="p-4">
+        <form id="task-form" class="flex gap-2 mb-3">
+          <input id="task-title" placeholder="Task title" required class="flex-1 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+          <button class="px-3 py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700">Add</button>
+        </form>
+        <div id="tasks"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expenses -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100"><h3 class="font-semibold text-gray-900"><i class="fas fa-receipt text-primary-500 mr-2"></i>Project Expenses</h3></div>
+    <div class="p-4">
+      <form id="expense-form" class="grid grid-cols-12 gap-2 mb-3 items-center">
+        <input id="exp-desc" placeholder="Description" required class="col-span-5 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+        <input id="exp-cat" placeholder="Category" class="col-span-2 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+        <input id="exp-amount" type="number" step="0.01" placeholder="Amount (R)" required class="col-span-2 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+        <label class="col-span-2 flex items-center gap-1 text-xs text-gray-600"><input type="checkbox" id="exp-billable" class="w-4 h-4"> Rechargeable</label>
+        <button class="col-span-1 px-3 py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700">Add</button>
+      </form>
+      <div id="expenses"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const PROJECT_ID = "{{ project_id }}";
+  const RMONEY = n => 'R ' + Number(n || 0).toLocaleString('en-ZA', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const ST = { active: 'green', completed: 'green', planning: 'yellow', planned: 'yellow', paused: 'yellow', cancelled: 'red', todo: 'gray', in_progress: 'blue', done: 'green' };
+  const badge = (s) => `<span class="px-2 py-0.5 rounded-full text-xs bg-${ST[s] || 'gray'}-100 text-${ST[s] || 'gray'}-800 capitalize">${(s||'').replace(/_/g,' ')}</span>`;
+  let customers = {};
+
+  async function loadOverview() {
+    const [p, custData] = await Promise.all([fetchData(`/projects/${PROJECT_ID}`), fetchData('/customers')]);
+    customers = Object.fromEntries(((custData && custData.customers) || []).map(c => [c.id, c.company_name || c.contact_person || '—']));
+    if (!p) { document.getElementById('overview').innerHTML = '<p class="text-red-500 text-sm">Project not found.</p>'; return; }
+    document.title = `Rephina Software ERP | ${p.name}`;
+    document.getElementById('overview').innerHTML = `
+      <div class="flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">${p.name}</h2>
+          <p class="text-sm text-gray-500 mt-1">${customers[p.customer_id] || 'No client'} · ${(p.billing_type||'').replace(/_/g,' ')}</p>
+        </div>
+        ${badge(p.status)}
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 text-sm">
+        <div><p class="text-gray-400 text-xs uppercase">Budget</p><p class="font-semibold">${p.budget ? RMONEY(p.budget) : '—'}</p></div>
+        <div><p class="text-gray-400 text-xs uppercase">Bill rate</p><p class="font-semibold">${p.billing_rate ? RMONEY(p.billing_rate) + '/h' : 'rate card'}</p></div>
+        <div><p class="text-gray-400 text-xs uppercase">Start</p><p class="font-semibold">${p.start_date || '—'}</p></div>
+        <div><p class="text-gray-400 text-xs uppercase">End</p><p class="font-semibold">${p.end_date || '—'}</p></div>
+      </div>`;
+  }
+
+  async function loadMetrics() {
+    const [un, prof] = await Promise.all([
+      fetchData(`/projects/${PROJECT_ID}/unbilled-time`),
+      fetchData('/reports/project-profitability'),
+    ]);
+    const me = ((prof && prof.projects) || []).find(p => p.project_id === PROJECT_ID) || {revenue: 0, cost: 0, margin: 0, margin_pct: null};
+    const cards = document.getElementById('metric-cards');
+    cards.innerHTML = `
+      <div class="bg-white rounded-2xl border border-gray-200 p-5">
+        <p class="text-xs font-bold text-gray-400 uppercase">Unbilled time</p>
+        <p class="text-2xl font-bold text-gray-900 mt-1">${RMONEY(un ? un.total_amount : 0)}</p>
+        <p class="text-xs text-gray-500">${un ? un.total_hours : 0}h across ${un ? un.entry_count : 0} entries</p>
+        <button id="gen-btn" class="mt-3 w-full px-3 py-2 bg-primary-600 text-white rounded-lg text-sm font-semibold hover:bg-primary-700 disabled:opacity-50" ${(!un || !un.entry_count) ? 'disabled' : ''}>
+          <i class="fas fa-bolt mr-1"></i> Generate Invoice</button>
+      </div>
+      <div class="bg-white rounded-2xl border border-gray-200 p-5">
+        <p class="text-xs font-bold text-gray-400 uppercase">Revenue · Cost</p>
+        <p class="text-2xl font-bold text-gray-900 mt-1">${RMONEY(me.revenue)}</p>
+        <p class="text-xs text-gray-500">cost ${RMONEY(me.cost)}</p>
+      </div>
+      <div class="bg-white rounded-2xl border border-gray-200 p-5">
+        <p class="text-xs font-bold text-gray-400 uppercase">Margin</p>
+        <p class="text-2xl font-bold mt-1 ${me.margin >= 0 ? 'text-green-600' : 'text-red-600'}">${RMONEY(me.margin)}</p>
+        <p class="text-xs text-gray-500">${me.margin_pct == null ? '—' : me.margin_pct + '% margin'}</p>
+      </div>`;
+    const btn = document.getElementById('gen-btn');
+    if (btn) btn.addEventListener('click', generateInvoice);
+  }
+
+  async function generateInvoice() {
+    const btn = document.getElementById('gen-btn');
+    btn.disabled = true; btn.innerHTML = 'Generating…';
+    const r = await fetch('/api/invoices/generate-from-time', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ project_id: PROJECT_ID }) });
+    const data = await r.json();
+    if (r.ok) { alert(`Invoice ${data.invoice.invoice_number} created: ${RMONEY(data.invoice.total_amount)} (incl VAT).`); loadMetrics(); }
+    else { alert(data.error || 'Could not generate invoice'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-bolt mr-1"></i> Generate Invoice'; }
+  }
+
+  async function loadSprints() {
+    const data = await fetchData(`/projects/${PROJECT_ID}/sprints`);
+    const el = document.getElementById('sprints');
+    const list = (data && data.sprints) || [];
+    el.innerHTML = list.length ? list.map(s => `
+      <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+        <span class="text-sm text-gray-800">${s.name}</span>${badge(s.status)}</div>`).join('')
+      : '<p class="text-sm text-gray-400 py-2">No sprints yet.</p>';
+  }
+
+  async function loadTasks() {
+    const data = await fetchData(`/tasks?project_id=${PROJECT_ID}&per_page=100`);
+    const el = document.getElementById('tasks');
+    const list = (data && data.tasks) || [];
+    el.innerHTML = list.length ? list.map(t => `
+      <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+        <span class="text-sm text-gray-800">${t.title}</span>${badge(t.status)}</div>`).join('')
+      : '<p class="text-sm text-gray-400 py-2">No tasks yet.</p>';
+  }
+
+  document.getElementById('sprint-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('sprint-name').value;
+    const r = await fetch(`/api/projects/${PROJECT_ID}/sprints`, { method: 'POST', headers: getHeaders(), body: JSON.stringify({ name }) });
+    if (r.ok) { document.getElementById('sprint-name').value = ''; loadSprints(); } else { alert('Could not add sprint'); }
+  });
+
+  document.getElementById('task-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = document.getElementById('task-title').value;
+    const r = await fetch('/api/tasks', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ title, project_id: PROJECT_ID, status: 'todo' }) });
+    if (r.ok) { document.getElementById('task-title').value = ''; loadTasks(); } else { alert('Could not add task'); }
+  });
+
+  async function loadExpenses() {
+    const data = await fetchData(`/expenses?project_id=${PROJECT_ID}`);
+    const el = document.getElementById('expenses');
+    const list = (data && data.expenses) || [];
+    el.innerHTML = list.length ? list.map(e => `
+      <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 text-sm">
+        <span class="text-gray-800">${e.description || e.category || '—'} ${e.billable ? '<span class="text-xs text-green-600">(rechargeable)</span>' : ''}</span>
+        <span class="flex items-center gap-3"><span class="text-gray-600">${RMONEY(e.amount)}</span>${badge(e.status)}</span>
+      </div>`).join('')
+      : '<p class="text-sm text-gray-400 py-2">No expenses logged.</p>';
+  }
+
+  document.getElementById('expense-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = {
+      project_id: PROJECT_ID,
+      description: document.getElementById('exp-desc').value,
+      category: document.getElementById('exp-cat').value,
+      amount: parseFloat(document.getElementById('exp-amount').value),
+      billable: document.getElementById('exp-billable').checked,
+    };
+    const r = await fetch('/api/expenses', { method: 'POST', headers: getHeaders(), body: JSON.stringify(body) });
+    if (r.ok) {
+      document.getElementById('expense-form').reset();
+      loadExpenses();
+      loadMetrics();  // margin reflects the new expense
+    } else { alert('Could not add expense'); }
+  });
+
+  loadOverview();
+  loadMetrics();
+  loadSprints();
+  loadTasks();
+  loadExpenses();
+</script>
+{% endblock %}

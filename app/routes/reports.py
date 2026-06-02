@@ -1,9 +1,21 @@
+from datetime import date, timedelta
+
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from config.database import db
 from app.models.report import Report
+from app.services import reports_service
 
 reports_bp = Blueprint('reports', __name__)
+
+
+def _parse_date(value, default):
+    if not value:
+        return default
+    try:
+        return date.fromisoformat(value)
+    except (ValueError, TypeError):
+        return default
 
 @reports_bp.route('', methods=['GET'])
 @jwt_required()
@@ -19,6 +31,35 @@ def create_report():
     db.session.add(report)
     db.session.commit()
     return jsonify({'id': str(report.id), 'message': 'Report created'}), 201
+
+@reports_bp.route('/utilisation', methods=['GET'])
+@reports_bp.route('/utilization', methods=['GET'])
+@jwt_required()
+def utilisation_report():
+    today = date.today()
+    d_from = _parse_date(request.args.get('from'), today - timedelta(days=today.weekday()))
+    d_to = _parse_date(request.args.get('to'), d_from + timedelta(days=6))
+    return jsonify(reports_service.utilisation(d_from, d_to)), 200
+
+
+@reports_bp.route('/project-profitability', methods=['GET'])
+@jwt_required()
+def project_profitability_report():
+    return jsonify(reports_service.project_profitability()), 200
+
+
+@reports_bp.route('/pipeline', methods=['GET'])
+@jwt_required()
+def pipeline_report():
+    return jsonify(reports_service.pipeline()), 200
+
+
+@reports_bp.route('/revenue', methods=['GET'])
+@jwt_required()
+def revenue_report():
+    year = request.args.get('year', date.today().year, type=int)
+    return jsonify(reports_service.revenue_by_month(year)), 200
+
 
 @reports_bp.route('/sales-summary', methods=['GET'])
 @jwt_required()

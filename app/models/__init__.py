@@ -2,6 +2,7 @@
 Database Models Package
 """
 from .user import User, Role, UserRole, Department, Team, TeamMember
+from .auth import TokenBlocklist
 from .project import Project, Sprint, ProjectTeam, Milestone
 from .task import Task, TaskComment, TaskAttachment
 from .rate import RateCard
@@ -20,9 +21,11 @@ from .log import ActivityLog, SystemLog
 from .schedule import Schedule, TimeEntry
 from .report import Report, DashboardWidget
 from .settings import CompanySettings
+from .retainer import RetainerContract
 
 __all__ = [
     'User', 'Role', 'UserRole', 'Department', 'Team', 'TeamMember',
+    'TokenBlocklist',
     'Project', 'Sprint', 'ProjectTeam', 'Milestone',
     'Task', 'TaskComment', 'TaskAttachment',
     'RateCard',
@@ -37,5 +40,6 @@ __all__ = [
     'ActivityLog', 'SystemLog',
     'Schedule', 'TimeEntry',
     'Report', 'DashboardWidget',
-    'CompanySettings'
+    'CompanySettings',
+    'RetainerContract',
 ]

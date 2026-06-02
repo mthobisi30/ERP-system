@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from config.database import db
 from app.models.customer import Opportunity
+from app.models.project import Project
 
 opportunities_bp = Blueprint('opportunities', __name__)
 
@@ -38,3 +39,38 @@ def update_opportunity(opp_id):
             setattr(opp, key, value)
     db.session.commit()
     return jsonify(opp.to_dict()), 200
+
+@opportunities_bp.route('/<opp_id>', methods=['DELETE'])
+@jwt_required()
+def delete_opportunity(opp_id):
+    opp = Opportunity.query.get_or_404(opp_id)
+    db.session.delete(opp)
+    db.session.commit()
+    return jsonify({'message': 'Opportunity deleted'}), 200
+
+@opportunities_bp.route('/<opp_id>/convert-to-project', methods=['POST'])
+@jwt_required()
+def convert_to_project(opp_id):
+    """Win an opportunity: create a Project from it and mark it closed_won."""
+    opp = Opportunity.query.get_or_404(opp_id)
+    data = request.get_json() or {}
+    project = Project(
+        name=data.get('name') or opp.name,
+        description=data.get('description') or opp.description,
+        customer_id=opp.customer_id,
+        opportunity_id=opp.id,
+        status='active',
+        billing_type=data.get('billing_type', 'time_and_materials'),
+        billing_rate=data.get('billing_rate'),
+        budget=data.get('budget') if data.get('budget') is not None else opp.estimated_value,
+        currency=data.get('currency', 'ZAR'),
+    )
+    opp.stage = 'closed_won'
+    opp.status = 'won'
+    try:
+        db.session.add(project)
+        db.session.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        return jsonify({'error': 'Could not convert opportunity', 'detail': str(exc)}), 400
+    return jsonify({'message': 'Opportunity converted to project', 'project': project.to_dict()}), 201

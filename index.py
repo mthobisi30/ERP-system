@@ -6,10 +6,10 @@ from flask import Flask, jsonify, request, send_from_directory, render_template,
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from dotenv import load_dotenv
 import os
+
+from app.extensions import limiter
 
 # Load environment variables
 load_dotenv()
@@ -27,11 +27,7 @@ app.config.from_object(config_map.get(config_env, config_map['default']))
 CORS(app, resources={r"/api/*": {"origins": app.config['CORS_ORIGINS'].split(',')}})
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
-limiter = Limiter(
-    app=app,
-    key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"]
-)
+limiter.init_app(app)
 
 from app.services.email_service import mail
 mail.init_app(app)
@@ -54,6 +50,8 @@ from app.routes.customers import customers_bp
 from app.routes.leads import leads_bp
 from app.routes.opportunities import opportunities_bp
 from app.routes.products import products_bp
+from app.routes.rates import rates_bp
+from app.routes.retainers import retainers_bp
 from app.routes.sales import sales_bp
 from app.routes.accounting import accounting_bp
 from app.routes.invoices import invoices_bp
@@ -79,6 +77,8 @@ app.register_blueprint(customers_bp, url_prefix='/api/customers')
 app.register_blueprint(leads_bp, url_prefix='/api/leads')
 app.register_blueprint(opportunities_bp, url_prefix='/api/opportunities')
 app.register_blueprint(products_bp, url_prefix='/api/products')
+app.register_blueprint(rates_bp, url_prefix='/api/rates')
+app.register_blueprint(retainers_bp, url_prefix='/api/retainers')
 app.register_blueprint(sales_bp, url_prefix='/api/sales')
 app.register_blueprint(accounting_bp, url_prefix='/api/accounting')
 app.register_blueprint(invoices_bp, url_prefix='/api/invoices')
@@ -99,7 +99,9 @@ def not_found(error):
 
 @app.errorhandler(500)
 def internal_error(error):
-    return jsonify({'error': 'Internal server error', 'message': str(error)}), 500
+    # Don't leak internal details to clients in production.
+    message = str(error) if app.debug else 'An unexpected error occurred'
+    return jsonify({'error': 'Internal server error', 'message': message}), 500
 
 @app.errorhandler(401)
 def unauthorized(error):
@@ -138,6 +140,35 @@ def profile_page():
 def settings_page():
     return render_template('settings.html', title='System Settings', active_view='settings', api_endpoint='', view_key='')
 
+@app.route('/timesheet')
+def timesheet_page():
+    return render_template('timesheet.html', title='Timesheet', active_view='timesheet', api_endpoint='', view_key='')
+
+@app.route('/billing')
+def billing_page():
+    return render_template('billing.html', title='Billing', active_view='billing', api_endpoint='', view_key='')
+
+@app.route('/retainers')
+def retainers_page():
+    return render_template('retainers.html', title='Retainers', active_view='retainers', api_endpoint='', view_key='')
+
+@app.route('/reports')
+def reports_page():
+    return render_template('reports.html', title='Reports & Analytics', active_view='reports', api_endpoint='', view_key='')
+
+@app.route('/projects/<project_id>')
+def project_detail_page(project_id):
+    return render_template('project_detail.html', title='Project', active_view='projects',
+                           api_endpoint='', view_key='', project_id=project_id)
+
+@app.route('/quotations')
+def quotations_page():
+    return render_template('quotations.html', title='Quotations', active_view='quotations', api_endpoint='', view_key='')
+
+@app.route('/board')
+def board_page():
+    return render_template('board.html', title='Task Board', active_view='board', api_endpoint='', view_key='')
+
 # Generic route for all list views
 @app.route('/<view_name>')
 def list_view(view_name):
@@ -151,7 +182,6 @@ def list_view(view_name):
         'leads': {'title': 'Leads', 'endpoint': '/leads', 'key': 'leads'},
         'opportunities': {'title': 'Opportunities', 'endpoint': '/opportunities', 'key': 'opportunities'},
         'sales': {'title': 'Sales Orders', 'endpoint': '/sales/orders', 'key': 'orders'},
-        'quotations': {'title': 'Quotations', 'endpoint': '/sales/quotations', 'key': 'quotations'},
         'products': {'title': 'Services', 'endpoint': '/products', 'key': 'products'},
         'accounting': {'title': 'Chart of Accounts', 'endpoint': '/accounting/accounts', 'key': 'accounts'},
         'journal_entries': {'title': 'Journal Entries', 'endpoint': '/accounting/journal-entries', 'key': 'entries'},
@@ -166,10 +196,10 @@ def list_view(view_name):
         'time-tracking': {'title': 'Time Tracking', 'endpoint': '/time-tracking', 'key': 'entries'},
         'tickets': {'title': 'Tickets', 'endpoint': '/tickets', 'key': 'tickets'},
         'notifications': {'title': 'Notifications', 'endpoint': '/notifications', 'key': 'notifications'},
-        'reports': {'title': 'Reports', 'endpoint': '/reports', 'key': 'reports'},
         'logs': {'title': 'Logs', 'endpoint': '/logs/system', 'key': 'logs'},
         'settings': {'title': 'Settings', 'endpoint': '/settings', 'key': 'settings'},
     }
+    # Note: 'reports' is a dedicated analytics page (see /reports route), not a generic list.
 
     if view_name in VIEW_CONFIG:
         config = VIEW_CONFIG[view_name]
@@ -253,6 +283,16 @@ def invalid_token_callback(error):
 @jwt.unauthorized_loader
 def missing_token_callback(error):
     return jsonify({'error': 'Authorization required', 'message': 'No token provided'}), 401
+
+@jwt.token_in_blocklist_loader
+def check_if_token_revoked(jwt_header, jwt_payload):
+    from app.models.auth import TokenBlocklist
+    jti = jwt_payload['jti']
+    return db.session.query(TokenBlocklist.id).filter_by(jti=jti).first() is not None
+
+@jwt.revoked_token_loader
+def revoked_token_callback(jwt_header, jwt_payload):
+    return jsonify({'error': 'Token revoked', 'message': 'Please log in again'}), 401
 
 if __name__ == '__main__':
     app.run(debug=os.getenv('DEBUG', '0') == '1', host='0.0.0.0', port=5000)

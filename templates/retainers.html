@@ -1,0 +1,149 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+
+  <!-- Header / run -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-900"><i class="fas fa-rotate text-primary-500 mr-2"></i>Retainers &amp; Recurring Billing</h2>
+      <p class="text-sm text-gray-500 mt-1">Monthly recurring revenue: <span id="mrr" class="font-bold text-gray-900">R 0.00</span></p>
+    </div>
+    <button id="run-btn" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-semibold">
+      <i class="fas fa-bolt mr-1"></i> Run this month's retainers
+    </button>
+  </div>
+
+  <div id="run-result" class="hidden rounded-2xl p-5 text-sm"></div>
+
+  <!-- Add contract -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+    <h3 class="font-semibold text-gray-900 mb-4">New Retainer</h3>
+    <form id="retainer-form" class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+      <div class="md:col-span-3">
+        <label class="block text-xs font-medium text-gray-500 mb-1">Name</label>
+        <input type="text" id="r-name" required placeholder="Acme — Managed Support" class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-primary-500">
+      </div>
+      <div class="md:col-span-3">
+        <label class="block text-xs font-medium text-gray-500 mb-1">Customer</label>
+        <select id="r-customer" required class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-primary-500"></select>
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-xs font-medium text-gray-500 mb-1">Monthly fee (R)</label>
+        <input type="number" step="0.01" min="0" id="r-fee" required class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-primary-500">
+      </div>
+      <div class="md:col-span-1">
+        <label class="block text-xs font-medium text-gray-500 mb-1">Bill day</label>
+        <input type="number" min="1" max="28" id="r-day" value="1" class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-primary-500">
+      </div>
+      <div class="md:col-span-2 flex items-center gap-2 pb-2">
+        <input type="checkbox" id="r-vat" checked class="w-4 h-4 text-primary-600 rounded">
+        <label for="r-vat" class="text-xs font-medium text-gray-600">VAT (15%)</label>
+      </div>
+      <div class="md:col-span-1">
+        <button type="submit" class="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-semibold">Add</button>
+      </div>
+    </form>
+    <p id="form-msg" class="text-sm mt-3 hidden"></p>
+  </div>
+
+  <!-- Contracts -->
+  <div id="contracts" class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-8 text-center text-gray-400 text-sm">Loading…</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const RMONEY = n => 'R ' + Number(n || 0).toLocaleString('en-ZA', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const ST_COLORS = { active: 'green', paused: 'yellow', cancelled: 'red' };
+  let customerCache = {};
+
+  async function loadCustomers() {
+    const data = await fetchData('/customers');
+    const list = (data && data.customers) || [];
+    customerCache = Object.fromEntries(list.map(c => [c.id, c.company_name || c.contact_person || '—']));
+    document.getElementById('r-customer').innerHTML = list.length
+      ? list.map(c => `<option value="${c.id}">${c.company_name || c.contact_person || c.email}</option>`).join('')
+      : '<option value="">No customers — add one first</option>';
+  }
+
+  async function loadContracts() {
+    const data = await fetchData('/retainers');
+    document.getElementById('mrr').textContent = RMONEY(data && data.mrr);
+    const c = document.getElementById('contracts');
+    const list = (data && data.retainers) || [];
+    if (!list.length) { c.innerHTML = '<div class="p-8 text-center text-gray-400 text-sm">No retainer contracts yet.</div>'; return; }
+    c.innerHTML = `
+      <table class="min-w-full">
+        <thead class="bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
+          <tr><th class="px-5 py-3 text-left">Name</th><th class="px-5 py-3 text-left">Customer</th>
+          <th class="px-5 py-3 text-right">Monthly</th><th class="px-5 py-3 text-center">Bill day</th>
+          <th class="px-5 py-3 text-center">Status</th><th class="px-5 py-3 text-left">Last billed</th><th class="px-5 py-3"></th></tr>
+        </thead>
+        <tbody>${list.map(r => `
+          <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+            <td class="px-5 py-3 text-sm font-medium text-gray-900">${r.name}</td>
+            <td class="px-5 py-3 text-sm text-gray-600">${customerCache[r.customer_id] || '—'}</td>
+            <td class="px-5 py-3 text-sm text-right">${RMONEY(r.monthly_fee)}</td>
+            <td class="px-5 py-3 text-sm text-center">${r.billing_day}</td>
+            <td class="px-5 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-${ST_COLORS[r.status] || 'gray'}-100 text-${ST_COLORS[r.status] || 'gray'}-800 capitalize">${r.status}</span></td>
+            <td class="px-5 py-3 text-sm text-gray-500">${r.last_invoiced_period || '—'}</td>
+            <td class="px-5 py-3 text-right"><button onclick="delContract('${r.id}')" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button></td>
+          </tr>`).join('')}</tbody>
+      </table>`;
+  }
+
+  window.delContract = async function (id) {
+    if (!confirm('Delete this retainer contract?')) return;
+    const r = await fetch(`/api/retainers/${id}`, { method: 'DELETE', headers: getHeaders() });
+    if (r.ok) loadContracts(); else alert('Could not delete');
+  };
+
+  document.getElementById('retainer-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = {
+      name: document.getElementById('r-name').value,
+      customer_id: document.getElementById('r-customer').value,
+      monthly_fee: parseFloat(document.getElementById('r-fee').value),
+      billing_day: parseInt(document.getElementById('r-day').value, 10),
+      vat_applicable: document.getElementById('r-vat').checked,
+    };
+    const msg = document.getElementById('form-msg');
+    const r = await fetch('/api/retainers', { method: 'POST', headers: getHeaders(), body: JSON.stringify(body) });
+    const data = await r.json();
+    msg.classList.remove('hidden');
+    if (r.ok) {
+      msg.className = 'text-sm mt-3 text-green-600';
+      msg.textContent = `Added "${data.name}".`;
+      document.getElementById('retainer-form').reset();
+      document.getElementById('r-day').value = '1';
+      loadContracts();
+    } else {
+      msg.className = 'text-sm mt-3 text-red-600';
+      msg.textContent = data.error || 'Could not add retainer.';
+    }
+  });
+
+  document.getElementById('run-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('run-btn');
+    btn.disabled = true; btn.innerHTML = 'Running…';
+    const r = await fetch('/api/retainers/run', { method: 'POST', headers: getHeaders(), body: JSON.stringify({}) });
+    const data = await r.json();
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-bolt mr-1"></i> Run this month\'s retainers';
+    const box = document.getElementById('run-result');
+    box.classList.remove('hidden');
+    if (r.ok) {
+      box.className = 'rounded-2xl p-5 text-sm bg-green-50 border border-green-200 text-green-800';
+      box.textContent = `Period ${data.period}: created ${data.created_count} invoice(s), skipped ${data.skipped_count} (already billed / out of range).`;
+      loadContracts();
+    } else {
+      box.className = 'rounded-2xl p-5 text-sm bg-red-50 border border-red-200 text-red-700';
+      box.textContent = data.error || 'Could not run retainers.';
+    }
+  });
+
+  loadCustomers().then(loadContracts);
+</script>
+{% endblock %}

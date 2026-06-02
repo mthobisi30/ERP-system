@@ -34,8 +34,13 @@ class Task(db.Model):
             'title': self.title,
             'description': self.description,
             'task_code': self.task_code,
+            'project_id': str(self.project_id) if self.project_id else None,
+            'sprint_id': str(self.sprint_id) if self.sprint_id else None,
+            'assigned_to': str(self.assigned_to) if self.assigned_to else None,
             'status': self.status,
             'priority': self.priority,
+            'estimated_hours': float(self.estimated_hours) if self.estimated_hours is not None else None,
+            'actual_hours': float(self.actual_hours) if self.actual_hours is not None else None,
             'due_date': self.due_date.isoformat() if self.due_date else None,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
