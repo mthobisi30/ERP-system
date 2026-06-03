@@ -1,0 +1,109 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+  <a href="/customers" class="text-sm text-gray-500 hover:text-primary-600"><i class="fas fa-arrow-left mr-1"></i> Clients</a>
+
+  <div id="client-head" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+    <div class="text-center text-gray-400 text-sm">Loading…</div>
+  </div>
+
+  <div id="client-metrics" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="font-semibold text-gray-900"><i class="fas fa-project-diagram text-primary-500 mr-2"></i>Projects</h3>
+        <a href="/projects/new" class="text-sm text-primary-600 hover:underline">+ New</a>
+      </div>
+      <div id="c-projects" class="p-2"></div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100"><h3 class="font-semibold text-gray-900"><i class="fas fa-headset text-primary-500 mr-2"></i>Support Tickets</h3></div>
+      <div id="c-tickets" class="p-2"></div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100"><h3 class="font-semibold text-gray-900"><i class="fas fa-file-invoice-dollar text-primary-500 mr-2"></i>Invoices</h3></div>
+    <div id="c-invoices"></div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100"><h3 class="font-semibold text-gray-900"><i class="fas fa-file-contract text-primary-500 mr-2"></i>Quotes</h3></div>
+      <div id="c-quotes" class="p-2"></div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100"><h3 class="font-semibold text-gray-900"><i class="fas fa-rotate text-primary-500 mr-2"></i>Retainers</h3></div>
+      <div id="c-retainers" class="p-2"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const CUSTOMER_ID = "{{ customer_id }}";
+  const RMONEY = n => 'R ' + Number(n || 0).toLocaleString('en-ZA', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const ST = { paid: 'green', partial: 'yellow', draft: 'gray', sent: 'blue', overdue: 'red', cancelled: 'red',
+    active: 'green', open: 'blue', in_progress: 'blue', resolved: 'green', closed: 'gray', accepted: 'green',
+    declined: 'red', planning: 'yellow', completed: 'green', upcoming: 'gray', pending: 'yellow' };
+  const badge = s => `<span class="px-2 py-0.5 rounded-full text-xs bg-${ST[s] || 'gray'}-100 text-${ST[s] || 'gray'}-800 capitalize">${(s || '').replace(/_/g, ' ')}</span>`;
+  const empty = m => `<p class="p-4 text-sm text-gray-400">${m}</p>`;
+  const row = inner => `<div class="flex items-center justify-between px-4 py-2 border-b border-gray-50 last:border-0 text-sm">${inner}</div>`;
+
+  async function load() {
+    const [cust, projects, invoices, quotes, payments, retainers, tickets] = await Promise.all([
+      fetchData(`/customers/${CUSTOMER_ID}`), fetchData(`/projects?customer_id=${CUSTOMER_ID}&per_page=100`),
+      fetchData(`/invoices?customer_id=${CUSTOMER_ID}`), fetchData(`/sales/quotations?customer_id=${CUSTOMER_ID}`),
+      fetchData(`/payments?customer_id=${CUSTOMER_ID}`), fetchData(`/retainers?customer_id=${CUSTOMER_ID}`),
+      fetchData(`/tickets?customer_id=${CUSTOMER_ID}`),
+    ]);
+    if (!cust) { document.getElementById('client-head').innerHTML = '<p class="text-red-500 text-sm">Client not found.</p>'; return; }
+    document.title = `Rephina Software ERP | ${cust.company_name || 'Client'}`;
+
+    document.getElementById('client-head').innerHTML = `
+      <div class="flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <div class="flex items-center gap-2">
+            ${cust.customer_code ? `<span class="px-2 py-0.5 rounded-md text-xs font-bold bg-primary-50 text-primary-700">${cust.customer_code}</span>` : ''}
+            ${badge(cust.status)}
+          </div>
+          <h2 class="text-2xl font-bold text-gray-900 mt-1">${cust.company_name || cust.contact_person || '—'}</h2>
+          <p class="text-sm text-gray-500">${[cust.contact_person, cust.email, cust.phone].filter(Boolean).join(' · ') || '—'}</p>
+        </div>
+      </div>`;
+
+    const invList = (invoices && invoices.invoices) || [];
+    const openBalance = invList.reduce((s, i) => s + (i.balance_due || 0), 0);
+    const activeProjects = ((projects && projects.projects) || []).filter(p => p.status === 'active').length;
+    const mrr = (retainers && retainers.mrr) || 0;
+    const openTickets = (tickets && tickets.open_count) || 0;
+    const card = (label, val, href) => `<a href="${href || '#'}" class="bg-white rounded-2xl border border-gray-200 p-5 block hover:shadow-md transition">
+      <p class="text-xs font-bold text-gray-400 uppercase">${label}</p><p class="text-2xl font-bold text-gray-900 mt-1">${val}</p></a>`;
+    document.getElementById('client-metrics').innerHTML =
+      card('Open Balance', RMONEY(openBalance)) + card('Active Projects', activeProjects) +
+      card('Recurring (MRR)', RMONEY(mrr)) + card('Open Tickets', openTickets);
+
+    document.getElementById('c-projects').innerHTML = ((projects && projects.projects) || []).map(p =>
+      row(`<a href="/projects/${p.id}" class="text-gray-900 hover:text-primary-600">${p.project_code ? '[' + p.project_code + '] ' : ''}${p.name}</a>${badge(p.status)}`)).join('') || empty('No projects.');
+
+    document.getElementById('c-tickets').innerHTML = ((tickets && tickets.tickets) || []).map(t =>
+      row(`<span>${t.ticket_number} · ${t.subject}</span>${badge(t.status)}`)).join('') || empty('No tickets.');
+
+    document.getElementById('c-invoices').innerHTML = invList.length ? `<table class="min-w-full text-sm">
+      <thead class="bg-gray-50 text-xs text-gray-500 uppercase"><tr><th class="text-left px-5 py-2">Invoice</th><th class="text-left">Date</th><th class="text-right">Total</th><th class="text-right">Balance</th><th class="text-center">Status</th><th></th></tr></thead>
+      <tbody>${invList.map(i => `<tr class="border-t border-gray-100"><td class="px-5 py-2 font-medium">${i.invoice_number}</td><td>${i.invoice_date || '—'}</td>
+        <td class="text-right">${RMONEY(i.total_amount)}</td><td class="text-right">${RMONEY(i.balance_due)}</td><td class="text-center">${badge(i.status)}</td>
+        <td class="text-right px-3"><button onclick="openPdf('/api/invoices/${i.id}/pdf')" class="text-primary-600"><i class="fas fa-file-pdf"></i></button></td></tr>`).join('')}</tbody></table>` : empty('No invoices.');
+
+    document.getElementById('c-quotes').innerHTML = ((quotes && quotes.quotations) || []).map(q =>
+      row(`<span>${q.quote_number} · ${q.title || ''} <span class="text-gray-500">${RMONEY(q.total_amount)}</span></span><span class="flex items-center gap-2">${badge(q.status)}<button onclick="openPdf('/api/sales/quotations/${q.id}/pdf')" class="text-primary-600"><i class="fas fa-file-pdf"></i></button></span>`)).join('') || empty('No quotes.');
+
+    document.getElementById('c-retainers').innerHTML = ((retainers && retainers.retainers) || []).map(r =>
+      row(`<span>${r.name} <span class="text-gray-500">${RMONEY(r.monthly_fee)}/mo</span></span>${badge(r.status)}`)).join('') || empty('No retainers.');
+  }
+  load();
+</script>
+{% endblock %}

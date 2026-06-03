@@ -204,6 +204,11 @@ def project_detail_page(project_id):
 def quotations_page():
     return render_template('quotations.html', title='Quotations', active_view='quotations', api_endpoint='', view_key='')
 
+@app.route('/customers/<customer_id>')
+def customer_detail_page(customer_id):
+    return render_template('client_360.html', title='Client', active_view='customers',
+                           api_endpoint='', view_key='', customer_id=customer_id)
+
 @app.route('/board')
 def board_page():
     return render_template('board.html', title='Task Board', active_view='board', api_endpoint='', view_key='')

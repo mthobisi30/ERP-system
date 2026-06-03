@@ -228,8 +228,9 @@ function renderTable(containerId, list, title) {
             return `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${val}</td>`;
         }).join('');
 
-        const viewBtn = VIEW_KEY === 'projects'
-            ? `<a href="/projects/${item.id}" title="Open workspace" class="text-gray-400 hover:text-primary-600 mr-3 transition-colors"><i class="fas fa-up-right-from-square"></i></a>`
+        const DETAIL = { projects: '/projects/', customers: '/customers/' };
+        const viewBtn = DETAIL[VIEW_KEY]
+            ? `<a href="${DETAIL[VIEW_KEY]}${item.id}" title="Open" class="text-gray-400 hover:text-primary-600 mr-3 transition-colors"><i class="fas fa-up-right-from-square"></i></a>`
             : '';
         const actions = `
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

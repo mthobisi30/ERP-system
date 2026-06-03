@@ -63,8 +63,10 @@ def get_projects():
     query = Project.query
     if status:
         query = query.filter_by(status=status)
-    
-    projects = query.paginate(page=page, per_page=per_page)
+    if request.args.get('customer_id'):
+        query = query.filter_by(customer_id=request.args.get('customer_id'))
+
+    projects = query.order_by(Project.created_at.desc()).paginate(page=page, per_page=per_page)
     return jsonify({
         'projects': [p.to_dict() for p in projects.items],
         'total': projects.total
