@@ -6,6 +6,114 @@ const state = {
 // API Base
 const API_BASE = '/api';
 
+// ============ Toast notifications (glassy popups) ============
+(function injectToastStyles() {
+    if (document.getElementById('toast-styles')) return;
+    const s = document.createElement('style');
+    s.id = 'toast-styles';
+    s.textContent = `
+      #toast-wrap{position:fixed;top:1rem;right:1rem;z-index:9999;display:flex;flex-direction:column;gap:.6rem;max-width:380px}
+      .toast{display:flex;align-items:flex-start;gap:.7rem;padding:.85rem 1rem;border-radius:14px;color:#0a1226;
+        background:rgba(255,255,255,.72);backdrop-filter:blur(16px) saturate(160%);-webkit-backdrop-filter:blur(16px) saturate(160%);
+        border:1px solid rgba(255,255,255,.55);box-shadow:0 12px 34px rgba(20,34,63,.20);
+        transform:translateX(120%);opacity:0;transition:all .35s cubic-bezier(.2,.8,.2,1);font-size:.875rem}
+      .toast.show{transform:none;opacity:1}
+      .toast .ic{width:1.6rem;height:1.6rem;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;font-size:.75rem}
+      .toast.success .ic{background:#4e7d32}.toast.error .ic{background:#dc2626}.toast.info .ic{background:#14223f}
+      .toast .msg{flex:1;line-height:1.35;padding-top:.1rem}
+      .toast .x{cursor:pointer;color:#94a3b8;padding-top:.1rem}.toast .x:hover{color:#475569}
+    `;
+    document.head.appendChild(s);
+})();
+
+function _toastWrap() {
+    let w = document.getElementById('toast-wrap');
+    if (!w) { w = document.createElement('div'); w.id = 'toast-wrap'; document.body.appendChild(w); }
+    return w;
+}
+
+window.showToast = function (message, type = 'info', timeout = 4500) {
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    const icon = type === 'success' ? 'fa-check' : type === 'error' ? 'fa-xmark' : 'fa-circle-info';
+    el.innerHTML = `<span class="ic"><i class="fas ${icon}"></i></span><span class="msg">${message}</span><span class="x"><i class="fas fa-xmark"></i></span>`;
+    _toastWrap().appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    const dismiss = () => { el.classList.remove('show'); setTimeout(() => el.remove(), 350); };
+    el.querySelector('.x').addEventListener('click', dismiss);
+    if (timeout) setTimeout(dismiss, timeout);
+};
+
+// Route legacy alert() calls through the toast system, classified by content.
+window.alert = function (message) {
+    const m = String(message == null ? '' : message);
+    const lower = m.toLowerCase();
+    const type = /error|could not|failed|fail|invalid|not found|already|cannot|denied|wrong|unable/.test(lower) ? 'error'
+        : /success|created|updated|deleted|added|saved|logged|recorded|sent|accepted|generated|complete|done/.test(lower) ? 'success'
+        : 'info';
+    window.showToast(m, type);
+};
+
+// Fetch helper that surfaces real server error messages as toasts.
+window.apiFetch = async function (path, options = {}) {
+    const res = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers: { ...getHeaders(), ...(options.headers || {}) },
+    });
+    let data = null;
+    try { data = await res.json(); } catch (e) { /* no body */ }
+    if (!res.ok) {
+        const msg = (data && (data.error || data.message)) || `Request failed (${res.status})`;
+        window.showToast(msg, 'error');
+        throw new Error(msg);
+    }
+    return data;
+};
+
+// ============ Glass confirm dialog (async replacement for window.confirm) ============
+(function injectConfirmStyles() {
+    if (document.getElementById('confirm-styles')) return;
+    const s = document.createElement('style');
+    s.id = 'confirm-styles';
+    s.textContent = `
+      .confirm-ov{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:1rem;
+        background:rgba(10,18,38,.35);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);opacity:0;transition:opacity .2s}
+      .confirm-ov.show{opacity:1}
+      .confirm-box{width:100%;max-width:380px;background:rgba(255,255,255,.85);backdrop-filter:blur(22px) saturate(160%);
+        -webkit-backdrop-filter:blur(22px) saturate(160%);border:1px solid rgba(255,255,255,.6);border-radius:20px;
+        box-shadow:0 24px 60px rgba(20,34,63,.28);padding:1.5rem;text-align:center;transform:scale(.96);transition:transform .2s}
+      .confirm-ov.show .confirm-box{transform:none}
+      .confirm-ic{width:3rem;height:3rem;border-radius:50%;background:#fee2e2;color:#dc2626;display:flex;align-items:center;
+        justify-content:center;margin:0 auto .9rem;font-size:1.1rem}
+      .confirm-msg{color:#0a1226;font-size:.95rem;margin-bottom:1.2rem;line-height:1.4}
+      .confirm-actions{display:flex;gap:.6rem}
+      .confirm-actions button{flex:1;padding:.6rem;border-radius:12px;font-size:.875rem;font-weight:600;cursor:pointer;border:none;transition:background .15s}
+      .confirm-cancel{background:#eef1f6;color:#334155}.confirm-cancel:hover{background:#e2e8f0}
+      .confirm-ok{background:#dc2626;color:#fff}.confirm-ok:hover{background:#b91c1c}
+    `;
+    document.head.appendChild(s);
+})();
+
+window.confirmDialog = function (message, opts = {}) {
+    return new Promise((resolve) => {
+        const ov = document.createElement('div');
+        ov.className = 'confirm-ov';
+        ov.innerHTML = `<div class="confirm-box">
+            <div class="confirm-ic"><i class="fas fa-triangle-exclamation"></i></div>
+            <p class="confirm-msg">${message}</p>
+            <div class="confirm-actions">
+                <button class="confirm-cancel">${opts.cancelText || 'Cancel'}</button>
+                <button class="confirm-ok">${opts.okText || 'Delete'}</button>
+            </div></div>`;
+        document.body.appendChild(ov);
+        requestAnimationFrame(() => ov.classList.add('show'));
+        const close = (val) => { ov.classList.remove('show'); setTimeout(() => ov.remove(), 200); resolve(val); };
+        ov.querySelector('.confirm-cancel').onclick = () => close(false);
+        ov.querySelector('.confirm-ok').onclick = () => close(true);
+        ov.addEventListener('click', (e) => { if (e.target === ov) close(false); });
+    });
+};
+
 // DOM Elements
 const loginForm = document.getElementById('login-form');
 const loginError = document.getElementById('login-error');
@@ -192,7 +300,7 @@ function renderDashboard(data) {
     const R = n => 'R ' + Number(n || 0).toLocaleString('en-ZA', {minimumFractionDigits: 0, maximumFractionDigits: 0});
     container.innerHTML = `
         <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome back! 👋</h2>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome back <i class="fas fa-hand-sparkles text-accent-500"></i></h2>
             <p class="text-gray-500">Here is what's happening at the agency today.</p>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
@@ -363,6 +471,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('nav-user-email').textContent = user.email;
         document.getElementById('nav-user-avatar').textContent = (user.first_name?.[0] || user.username?.[0] || '?').toUpperCase();
     }
+
+    // Hide sidebar nav links for modules disabled in Settings → Modules.
+    try {
+        const mods = await fetchData('/modules/enabled');
+        if (mods && Array.isArray(mods.all)) {
+            const enabled = new Set(mods.enabled);
+            document.querySelectorAll('aside a[href^="/"]').forEach(el => {
+                const key = el.getAttribute('href').slice(1).split(/[/?]/)[0];
+                if (mods.all.includes(key) && !enabled.has(key)) el.style.display = 'none';
+            });
+        }
+    } catch (e) { /* modules optional */ }
 });
 
 function renderProfile(user) {
@@ -650,7 +770,7 @@ window.openEditModal = async function(viewKey, id) {
 };
 
 window.deleteRecord = async function(viewKey, id) {
-    if (!confirm('Are you sure you want to delete this record?')) return;
+    if (!(await window.confirmDialog('Are you sure you want to delete this record?'))) return;
     let endpoint = API_ENDPOINT.replace(/\/stats$/, '').split('?')[0];
     try {
         const response = await fetch(`${API_BASE}${endpoint}/${id}`, {

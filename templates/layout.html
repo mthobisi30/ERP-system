@@ -53,9 +53,32 @@
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #c7d0dd; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        body { font-family: 'Outfit', sans-serif; }
+
+        /* Liquid-glass theme — Rephina navy/green tinted backdrop */
+        body {
+            font-family: 'Outfit', sans-serif;
+            background:
+                radial-gradient(1200px 600px at 100% -10%, rgba(78,125,50,.10), transparent 60%),
+                radial-gradient(1000px 700px at -10% 110%, rgba(20,34,63,.12), transparent 55%),
+                linear-gradient(135deg, #eef2f8 0%, #e9eef6 45%, #eef4ee 100%) !important;
+            background-attachment: fixed;
+        }
+        /* Frosted translucency on every white surface (sidebar, header, cards, modals) */
+        .bg-white {
+            background-color: rgba(255,255,255,.72) !important;
+            backdrop-filter: blur(16px) saturate(155%);
+            -webkit-backdrop-filter: blur(16px) saturate(155%);
+        }
+        /* Soft entrance animations */
+        @keyframes rise { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform:none; } }
+        #content-area > * { animation: rise .45s cubic-bezier(.2,.8,.2,1) both; }
+        #create-modal > div, #edit-modal > div { animation: rise .3s ease both; }
+        /* Hover lift + smooth nav */
+        .bg-white.rounded-2xl, .bg-white.rounded-xl { transition: transform .2s ease, box-shadow .2s ease; }
+        .bg-white.rounded-2xl:hover, .bg-white.rounded-xl:hover { box-shadow: 0 14px 40px rgba(20,34,63,.10); }
+        nav a { transition: all .15s ease; }
     </style>
     {% block head %}{% endblock %}
 </head>
@@ -98,6 +121,9 @@
             <a href="/sales" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'sales' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
                 <i class="fas fa-shopping-cart w-5 text-center"></i> Sales Orders
             </a>
+            <a href="/enquiries" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'enquiries' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-inbox w-5 text-center"></i> Enquiries
+            </a>
 
             <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Project Management</div>
             <a href="/projects" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'projects' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
@@ -119,6 +145,11 @@
             <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Catalog</div>
             <a href="/products" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'products' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
                 <i class="fas fa-list-check w-5 text-center"></i> Services &amp; Rates
+            </a>
+
+            <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Website</div>
+            <a href="/blog" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'blog' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-feather-pointed w-5 text-center"></i> Blog
             </a>
 
             <div class="px-3 mb-2 mt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Finance</div>
@@ -161,6 +192,9 @@
             </a>
             <a href="/logs" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'logs' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
                 <i class="fas fa-terminal w-5 text-center"></i> System Logs
+            </a>
+            <a href="/modules" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'modules' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
+                <i class="fas fa-toggle-on w-5 text-center"></i> Modules
             </a>
             <a href="/settings" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors {% if active_view == 'settings' %}bg-primary-50 text-primary-700{% else %}text-slate-600 hover:bg-gray-50 hover:text-slate-900{% endif %}">
                 <i class="fas fa-cog w-5 text-center"></i> Settings
@@ -217,7 +251,7 @@
         </header>
 
         <!-- Page Content -->
-        <main class="flex-1 overflow-y-auto p-6 lg:p-8 bg-gray-50" id="content-area">
+        <main class="flex-1 overflow-y-auto p-6 lg:p-8 bg-transparent" id="content-area">
             {% block content %}{% endblock %}
         </main>
     </div>

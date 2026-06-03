@@ -106,7 +106,7 @@
   }
 
   window.deleteEntry = async function (id) {
-    if (!confirm('Delete this time entry?')) return;
+    if (!(await window.confirmDialog('Delete this time entry?'))) return;
     const r = await fetch(`/api/time-tracking/${id}`, { method: 'DELETE', headers: getHeaders() });
     if (r.ok) loadWeek(); else alert('Could not delete (already invoiced?)');
   };

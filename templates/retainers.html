@@ -96,7 +96,7 @@
   }
 
   window.delContract = async function (id) {
-    if (!confirm('Delete this retainer contract?')) return;
+    if (!(await window.confirmDialog('Delete this retainer contract?'))) return;
     const r = await fetch(`/api/retainers/${id}`, { method: 'DELETE', headers: getHeaders() });
     if (r.ok) loadContracts(); else alert('Could not delete');
   };

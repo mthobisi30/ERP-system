@@ -22,6 +22,9 @@ from .schedule import Schedule, TimeEntry
 from .report import Report, DashboardWidget
 from .settings import CompanySettings
 from .retainer import RetainerContract
+from .blog import BlogPost
+from .enquiry import Enquiry
+from .module import ModuleConfig
 
 __all__ = [
     'User', 'Role', 'UserRole', 'Department', 'Team', 'TeamMember',
@@ -42,4 +45,7 @@ __all__ = [
     'Report', 'DashboardWidget',
     'CompanySettings',
     'RetainerContract',
+    'BlogPost',
+    'Enquiry',
+    'ModuleConfig',
 ]

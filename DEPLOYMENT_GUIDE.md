@@ -1,5 +1,24 @@
 # Complete Deployment Guide for ERP System on Vercel
 
+## 🚀 Production Go-Live Checklist
+
+Work top to bottom; each item is required for a safe production launch.
+
+- [ ] **Create an empty Neon Postgres database** and copy its connection string.
+- [ ] **Set `DATABASE_URL`** to that connection string (Vercel env var + local `.env`).
+- [ ] **Generate real secrets:** `python -c "import secrets; print(secrets.token_hex(32))"` for both `SECRET_KEY` and `JWT_SECRET_KEY`. (The app prints a `[CONFIG WARNING]` on boot if these are left as defaults.)
+- [ ] **Set `FLASK_ENV=production`** and `DEBUG=0`.
+- [ ] **Restrict `CORS_ORIGINS`** to your real domain(s) (not `*`).
+- [ ] **Confirm SA settings:** `DEFAULT_CURRENCY=ZAR`, `VAT_RATE=15.0`, `VAT_REGISTRATION_NUMBER`, `TIMEZONE=Africa/Johannesburg`, `COMPANY_*`.
+- [ ] **Build the schema:** `alembic upgrade head` against the Neon DB.
+- [ ] **Seed:** `python scripts/seed_database.py`, then **immediately log in and change the default admin password** (`admin@erp.com` / `Admin@123`).
+- [ ] *(Optional, recommended for serverless)* set `RATELIMIT_STORAGE_URI` to a Redis URL so rate limits hold across instances.
+- [ ] *(Optional)* configure `MAIL_*`, `CLOUDINARY_*`/`AWS_*`, `STRIPE_*` if/when you use email, file storage, or payments.
+- [ ] **Push the branch** so CI (`.github/workflows/tests.yml`) runs the test suite, then deploy.
+- [ ] **Smoke test:** visit `/api/health` and `/api/db-test`, log in, log time, generate an invoice, download its PDF.
+
+---
+
 ## Prerequisites
 
 - Python 3.11 or higher
