@@ -24,7 +24,7 @@ _PROJECT_FIELDS = {'name', 'description', 'customer_id', 'opportunity_id', 'stat
                    'project_manager_id', 'department_id', 'billing_type', 'billing_rate', 'currency',
                    'system_name', 'contract_ref', 'contract_value', 'project_type', 'scope',
                    'estimated_cost', 'estimated_hours', 'repository_url', 'live_url', 'readme',
-                   'budget', 'completion_percentage', 'project_code'}
+                   'showcase', 'budget', 'completion_percentage', 'project_code'}
 _PROJECT_DATES = {'start_date', 'end_date', 'contract_signed_date'}
 
 

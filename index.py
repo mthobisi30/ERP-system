@@ -215,6 +215,11 @@ def customer_detail_page(customer_id):
 def board_page():
     return render_template('board.html', title='Task Board', active_view='board', api_endpoint='', view_key='')
 
+@app.route('/showcase')
+def showcase_page():
+    # Public portfolio page (no auth) — driven by projects flagged showcase=True.
+    return render_template('showcase.html', company_name=app.config.get('COMPANY_NAME', 'Rephina Software'))
+
 @app.route('/blog')
 def blog_page():
     return render_template('blog.html', title='Blog', active_view='blog', api_endpoint='', view_key='')

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ company_name }} — Work</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      colors: { primary: { 50:'#f1f5fa',100:'#e2e8f3',500:'#44597f',600:'#14223f',700:'#101b33',800:'#0a1226' },
+                accent: { 500:'#5a833a',600:'#4e7d32',700:'#3a5e26' } },
+      fontFamily: { sans: ['Outfit','sans-serif'] } } } };
+  </script>
+  <style>
+    body { font-family:'Outfit',sans-serif; background:
+      radial-gradient(1000px 500px at 100% -10%, rgba(78,125,50,.10), transparent 60%),
+      radial-gradient(900px 600px at -10% 110%, rgba(20,34,63,.14), transparent 55%),
+      linear-gradient(135deg,#eef2f8,#e9eef6 45%,#eef4ee); background-attachment:fixed; }
+    .glass { background:rgba(255,255,255,.72); backdrop-filter:blur(16px) saturate(155%); -webkit-backdrop-filter:blur(16px) saturate(155%); }
+  </style>
+</head>
+<body class="text-slate-800 min-h-screen">
+  <header class="max-w-6xl mx-auto px-6 pt-16 pb-10">
+    <div class="flex items-center gap-3 text-primary-600">
+      <i class="fas fa-layer-group text-2xl text-accent-600"></i>
+      <span class="font-bold text-2xl text-slate-900">{{ company_name }}</span>
+    </div>
+    <h1 class="text-4xl md:text-5xl font-bold text-slate-900 mt-6">Selected Work</h1>
+    <p class="text-slate-500 mt-3 max-w-2xl">Software we've designed, built and shipped. Build. Automate. Scale.</p>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 pb-20">
+    <div id="cases" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl border border-white/50 p-8 text-center text-slate-400">Loading…</div>
+    </div>
+  </main>
+
+  <footer class="max-w-6xl mx-auto px-6 py-8 text-sm text-slate-400 border-t border-slate-200/60">
+    © {{ company_name }} · <a href="/login" class="hover:text-primary-600">Staff login</a>
+  </footer>
+
+  <script>
+    async function load() {
+      const el = document.getElementById('cases');
+      try {
+        const res = await fetch('/api/public/showcase');
+        const data = await res.json();
+        const list = (data && data.projects) || [];
+        if (!list.length) { el.innerHTML = '<div class="glass rounded-2xl border border-white/50 p-8 text-center text-slate-400 md:col-span-2">No case studies published yet.</div>'; return; }
+        el.innerHTML = list.map(p => `
+          <article class="glass rounded-2xl border border-white/50 p-6 shadow-sm hover:shadow-lg transition-shadow">
+            <div class="flex items-center gap-2 mb-2">
+              ${p.project_type ? `<span class="px-2 py-0.5 rounded-full text-xs bg-primary-50 text-primary-700">${p.project_type}</span>` : ''}
+              <span class="text-xs text-slate-400 capitalize">${(p.status || '').replace(/_/g,' ')}</span>
+            </div>
+            <h2 class="text-xl font-bold text-slate-900">${p.title}</h2>
+            ${p.scope ? `<p class="text-sm text-slate-600 mt-2 line-clamp-4">${p.scope}</p>` : ''}
+            ${(p.tech_stack || []).length ? `<div class="flex flex-wrap gap-1.5 mt-4">${p.tech_stack.map(t => `<span class="px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-600">${t}</span>`).join('')}</div>` : ''}
+            ${p.live_url ? `<a href="${p.live_url}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 mt-5 text-sm font-semibold text-primary-600 hover:text-primary-700"><i class="fas fa-arrow-up-right-from-square"></i> View live</a>` : ''}
+          </article>`).join('');
+      } catch (e) {
+        el.innerHTML = '<div class="glass rounded-2xl border border-white/50 p-8 text-center text-red-500 md:col-span-2">Could not load work.</div>';
+      }
+    }
+    load();
+  </script>
+</body>
+</html>

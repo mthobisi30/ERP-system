@@ -8,9 +8,30 @@ from flask import Blueprint, request, jsonify
 from config.database import db
 from app.models.blog import BlogPost
 from app.models.enquiry import Enquiry
+from app.models.project import Project
 from app.extensions import limiter
 
 public_bp = Blueprint('public', __name__)
+
+
+def _showcase_dict(p):
+    """Public-safe projection of a project — no client names or financials."""
+    return {
+        'title': p.system_name or p.name,
+        'project_type': p.project_type,
+        'tech_stack': [t.strip() for t in (p.tech_stack or '').split(',') if t.strip()],
+        'scope': p.scope,
+        'live_url': p.live_url,
+        'repository_url': p.repository_url,
+        'status': p.status,
+    }
+
+
+@public_bp.route('/showcase', methods=['GET'])
+def public_showcase():
+    projects = (Project.query.filter_by(showcase=True)
+                .order_by(Project.created_at.desc()).all())
+    return jsonify({'projects': [_showcase_dict(p) for p in projects]}), 200
 
 
 @public_bp.route('/blog', methods=['GET'])

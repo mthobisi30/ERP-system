@@ -37,6 +37,7 @@ class Project(db.Model):
     repository_url = db.Column(db.String(300))
     live_url = db.Column(db.String(300))
     readme = db.Column(db.Text)                        # README / project notes (markdown)
+    showcase = db.Column(db.Boolean, default=False, nullable=False)  # publish as a public case study
     budget = db.Column(db.Numeric(15, 2))
     actual_cost = db.Column(db.Numeric(15, 2), default=0)
     start_date = db.Column(db.Date)
@@ -71,6 +72,7 @@ class Project(db.Model):
             'repository_url': self.repository_url,
             'live_url': self.live_url,
             'readme': self.readme,
+            'showcase': self.showcase,
             'budget': float(self.budget) if self.budget else None,
             'actual_cost': float(self.actual_cost) if self.actual_cost else None,
             'start_date': self.start_date.isoformat() if self.start_date else None,
