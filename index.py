@@ -89,6 +89,7 @@ from app.routes.blog import blog_bp
 from app.routes.enquiries import enquiries_bp
 from app.routes.modules import modules_bp
 from app.routes.public import public_bp
+from app.routes.search import search_bp
 
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -120,6 +121,7 @@ app.register_blueprint(blog_bp, url_prefix='/api/blog')
 app.register_blueprint(enquiries_bp, url_prefix='/api/enquiries')
 app.register_blueprint(modules_bp, url_prefix='/api/modules')
 app.register_blueprint(public_bp, url_prefix='/api/public')
+app.register_blueprint(search_bp, url_prefix='/api/search')
 
 # Error handlers
 @app.errorhandler(404)

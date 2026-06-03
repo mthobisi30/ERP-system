@@ -830,3 +830,30 @@ async function initProfile() {
 }
 document.addEventListener('DOMContentLoaded', initProfile);
 
+
+// ============ Global search (header) ============
+(function wireGlobalSearch() {
+    document.addEventListener('DOMContentLoaded', () => {
+        const input = document.getElementById('global-search');
+        const box = document.getElementById('search-results');
+        if (!input || !box) return;
+        let timer;
+        const hide = () => box.classList.add('hidden');
+        input.addEventListener('input', () => {
+            clearTimeout(timer);
+            const q = input.value.trim();
+            if (q.length < 2) { hide(); return; }
+            timer = setTimeout(async () => {
+                const data = await fetchData('/search?q=' + encodeURIComponent(q));
+                const results = (data && data.results) || [];
+                box.innerHTML = results.length
+                    ? results.map(r => `<a href="${r.url}" class="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 border-b border-gray-50 last:border-0">
+                        <span class="text-sm text-gray-800 truncate mr-2">${r.label}</span><span class="text-[10px] uppercase text-gray-400 flex-shrink-0">${r.type}</span></a>`).join('')
+                    : '<div class="p-3 text-sm text-gray-400">No matches</div>';
+                box.classList.remove('hidden');
+            }, 250);
+        });
+        input.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
+        document.addEventListener('click', e => { if (!input.contains(e.target) && !box.contains(e.target)) hide(); });
+    });
+})();

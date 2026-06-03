@@ -233,7 +233,8 @@
             <div class="flex items-center gap-4">
                 <div class="relative hidden sm:block">
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                    <input type="text" placeholder="Search..." class="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent w-48 lg:w-64 transition-all">
+                    <input type="text" id="global-search" autocomplete="off" placeholder="Search clients, projects, invoices…" class="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent w-48 lg:w-72 transition-all">
+                    <div id="search-results" class="hidden absolute z-50 mt-2 w-80 right-0 bg-white rounded-xl shadow-2xl border border-gray-200 max-h-96 overflow-y-auto"></div>
                 </div>
                 
                 <a href="/tools" class="hidden md:flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
