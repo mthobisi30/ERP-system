@@ -3,7 +3,8 @@ Database Models Package
 """
 from .user import User, Role, UserRole, Department, Team, TeamMember
 from .auth import TokenBlocklist
-from .project import Project, Sprint, ProjectTeam, Milestone
+from .project import Project, Sprint, ProjectTeam, Milestone, ProjectPhase, PhaseDeliverable
+from .projectdoc import ProjectDocument
 from .task import Task, TaskComment, TaskAttachment
 from .rate import RateCard
 from .customer import Customer, CustomerContact, Lead, Opportunity
@@ -29,7 +30,8 @@ from .module import ModuleConfig
 __all__ = [
     'User', 'Role', 'UserRole', 'Department', 'Team', 'TeamMember',
     'TokenBlocklist',
-    'Project', 'Sprint', 'ProjectTeam', 'Milestone',
+    'Project', 'Sprint', 'ProjectTeam', 'Milestone', 'ProjectPhase', 'PhaseDeliverable',
+    'ProjectDocument',
     'Task', 'TaskComment', 'TaskAttachment',
     'RateCard',
     'Customer', 'CustomerContact', 'Lead', 'Opportunity',

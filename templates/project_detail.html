@@ -52,6 +52,73 @@
       <div id="expenses"></div>
     </div>
   </div>
+
+  <!-- Payment schedule -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100"><h3 class="font-semibold text-gray-900"><i class="fas fa-money-check-dollar text-primary-500 mr-2"></i>Payment Schedule</h3></div>
+    <div class="p-4">
+      <form id="ms-form" class="grid grid-cols-12 gap-2 mb-3 items-center">
+        <input id="ms-name" placeholder="Deposit / Milestone 1" required class="col-span-2 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+        <input id="ms-trigger" placeholder="Trigger (e.g. Phase 1 gate)" class="col-span-4 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+        <input id="ms-invoice" placeholder="Invoice ref" class="col-span-2 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+        <input id="ms-amount" type="number" step="0.01" placeholder="Amount" class="col-span-2 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+        <select id="ms-status" class="col-span-1 px-2 py-2 border border-gray-200 rounded-lg bg-gray-50 text-xs"><option value="upcoming">Upcoming</option><option value="pending">Pending</option><option value="paid">Paid</option><option value="delivered">Delivered</option></select>
+        <button class="col-span-1 px-3 py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700">Add</button>
+      </form>
+      <div id="schedule"></div>
+    </div>
+  </div>
+
+  <!-- Phases -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <h3 class="font-semibold text-gray-900"><i class="fas fa-layer-group text-primary-500 mr-2"></i>Phases</h3>
+      <button onclick="showPhaseForm()" class="text-sm text-primary-600 hover:text-primary-700"><i class="fas fa-plus mr-1"></i>Add phase</button>
+    </div>
+    <div class="p-4">
+      <form id="phase-form" class="hidden grid grid-cols-12 gap-2 mb-4">
+        <input id="ph-number" type="number" placeholder="#" class="col-span-1 px-2 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+        <input id="ph-total" type="number" placeholder="of" class="col-span-1 px-2 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+        <input id="ph-title" placeholder="Phase title" class="col-span-6 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+        <input id="ph-value" type="number" step="0.01" placeholder="Phase value" class="col-span-2 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+        <input id="ph-trig" placeholder="Triggers invoice ref" class="col-span-2 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+        <input id="ph-start" type="date" class="col-span-2 px-2 py-2 border border-gray-200 rounded-lg bg-gray-50 text-xs">
+        <input id="ph-end" type="date" class="col-span-2 px-2 py-2 border border-gray-200 rounded-lg bg-gray-50 text-xs">
+        <input id="ph-gatestatus" placeholder="Gate status (e.g. Met)" class="col-span-4 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+        <textarea id="ph-gate" placeholder="Gate criteria" class="col-span-8 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm" rows="1"></textarea>
+        <textarea id="ph-extra" placeholder="Additional scope (optional)" class="col-span-10 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm" rows="1"></textarea>
+        <button class="col-span-2 px-3 py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700">Save phase</button>
+      </form>
+      <div id="phases-list"></div>
+    </div>
+  </div>
+
+  <!-- Documents -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <h3 class="font-semibold text-gray-900"><i class="fas fa-file-pdf text-primary-500 mr-2"></i>Documents</h3>
+      <div class="flex gap-2">
+        <button onclick="newDoc('END')" class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">New Endorsement</button>
+        <button onclick="newDoc('PMN')" class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">New Migration Notice</button>
+      </div>
+    </div>
+    <div id="documents" class="p-4"></div>
+  </div>
+</div>
+
+<!-- Doc data modal -->
+<div id="doc-modal" class="fixed inset-0 bg-gray-900/50 hidden items-center justify-center p-4 z-50 overflow-y-auto">
+  <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto my-8">
+    <div class="p-5 border-b border-gray-100 flex justify-between items-center">
+      <h3 class="font-bold text-gray-900" id="doc-modal-title">New Document</h3>
+      <button onclick="document.getElementById('doc-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="p-5 space-y-3" id="doc-modal-fields"></div>
+    <div class="p-5 border-t border-gray-100 flex justify-end gap-2">
+      <button onclick="document.getElementById('doc-modal').classList.add('hidden')" class="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">Cancel</button>
+      <button id="doc-modal-save" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Create &amp; open PDF</button>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
@@ -185,10 +252,146 @@
     } else { alert('Could not add expense'); }
   });
 
+  // ---- Payment schedule ----
+  async function loadSchedule() {
+    const data = await fetchData(`/projects/${PROJECT_ID}/milestones`);
+    const list = Array.isArray(data) ? data : ((data && data.milestones) || []);
+    const el = document.getElementById('schedule');
+    if (!list.length) { el.innerHTML = '<p class="text-sm text-gray-400">No payment lines yet.</p>'; return; }
+    el.innerHTML = `<table class="min-w-full text-sm"><thead class="text-xs text-gray-500 uppercase"><tr>
+      <th class="text-left py-2">Payment</th><th class="text-left">Invoice</th><th class="text-left">Trigger</th>
+      <th class="text-right">Amount</th><th class="text-center">Status</th><th></th></tr></thead><tbody>
+      ${list.map(m => `<tr class="border-t border-gray-100">
+        <td class="py-2 font-medium text-gray-900">${m.name}</td>
+        <td class="text-gray-500">${m.invoice_ref || '—'}</td>
+        <td class="text-gray-600">${m.trigger || '—'}</td>
+        <td class="text-right">${RMONEY(m.amount)}</td>
+        <td class="text-center">${badge(m.payment_status)}</td>
+        <td class="text-right"><button onclick="delMilestone('${m.id}')" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button></td>
+      </tr>`).join('')}</tbody></table>`;
+  }
+  window.delMilestone = async function (id) {
+    if (!(await window.confirmDialog('Delete this payment line?'))) return;
+    try { await apiFetch(`/projects/milestones/${id}`, { method: 'DELETE' }); loadSchedule(); } catch (e) {}
+  };
+  document.getElementById('ms-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = { name: document.getElementById('ms-name').value, trigger: document.getElementById('ms-trigger').value,
+      invoice_ref: document.getElementById('ms-invoice').value, amount: parseFloat(document.getElementById('ms-amount').value) || 0,
+      payment_status: document.getElementById('ms-status').value };
+    try { await apiFetch(`/projects/${PROJECT_ID}/milestones`, { method: 'POST', body: JSON.stringify(body) });
+      showToast('Payment line added', 'success'); document.getElementById('ms-form').reset(); loadSchedule(); } catch (e) {}
+  });
+
+  // ---- Phases ----
+  window.showPhaseForm = () => document.getElementById('phase-form').classList.toggle('hidden');
+  async function loadPhases() {
+    const data = await fetchData(`/projects/${PROJECT_ID}/phases`);
+    const list = (data && data.phases) || [];
+    const el = document.getElementById('phases-list');
+    if (!list.length) { el.innerHTML = '<p class="text-sm text-gray-400">No phases yet.</p>'; return; }
+    el.innerHTML = list.map(p => `
+      <div class="border border-gray-100 rounded-xl p-4 mb-3">
+        <div class="flex items-center justify-between">
+          <p class="font-medium text-gray-900">${p.number ? 'Phase ' + p.number + (p.total_phases ? ' of ' + p.total_phases : '') + ' — ' : ''}${p.title} ${badge(p.status)}</p>
+          <div class="flex gap-2">
+            <button onclick="openPdf('/api/projects/phases/${p.id}/report.pdf')" class="text-sm text-primary-600 hover:underline"><i class="fas fa-file-pdf mr-1"></i>Report PDF</button>
+            <button onclick="delPhase('${p.id}')" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <div class="mt-2 pl-1">
+          ${(p.deliverables || []).map(d => `<div class="text-sm text-gray-600 flex justify-between border-t border-gray-50 py-1"><span>${d.name}</span><span class="text-xs text-green-600">${d.status || ''}</span></div>`).join('') || '<p class="text-xs text-gray-400">No deliverables.</p>'}
+          <div class="flex gap-2 mt-2">
+            <input id="del-name-${p.id}" placeholder="Deliverable" class="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg bg-gray-50 text-xs">
+            <input id="del-impl-${p.id}" placeholder="Implementation" class="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg bg-gray-50 text-xs">
+            <button onclick="addDeliverable('${p.id}')" class="px-3 py-1.5 bg-gray-100 rounded-lg text-xs hover:bg-gray-200">Add</button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+  window.delPhase = async function (id) {
+    if (!(await window.confirmDialog('Delete this phase?'))) return;
+    try { await apiFetch(`/projects/phases/${id}`, { method: 'DELETE' }); loadPhases(); } catch (e) {}
+  };
+  window.addDeliverable = async function (phaseId) {
+    const name = document.getElementById(`del-name-${phaseId}`).value;
+    if (!name) { showToast('Deliverable name required', 'error'); return; }
+    const impl = document.getElementById(`del-impl-${phaseId}`).value;
+    try { await apiFetch(`/projects/phases/${phaseId}/deliverables`, { method: 'POST', body: JSON.stringify({ name, implementation: impl }) }); loadPhases(); } catch (e) {}
+  };
+  document.getElementById('phase-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const g = id => document.getElementById(id).value;
+    const body = { number: parseInt(g('ph-number')) || null, total_phases: parseInt(g('ph-total')) || null,
+      title: g('ph-title'), phase_value: parseFloat(g('ph-value')) || null, triggers_invoice_ref: g('ph-trig'),
+      period_start: g('ph-start') || null, period_end: g('ph-end') || null, gate_status: g('ph-gatestatus'),
+      gate_criteria: g('ph-gate'), additional_scope: g('ph-extra') };
+    if (!body.title) { showToast('Phase title required', 'error'); return; }
+    try { await apiFetch(`/projects/${PROJECT_ID}/phases`, { method: 'POST', body: JSON.stringify(body) });
+      showToast('Phase added', 'success'); document.getElementById('phase-form').reset();
+      document.getElementById('phase-form').classList.add('hidden'); loadPhases(); } catch (e) {}
+  });
+
+  // ---- Documents ----
+  async function loadDocuments() {
+    const data = await fetchData(`/projects/${PROJECT_ID}/documents`);
+    const list = (data && data.documents) || [];
+    const el = document.getElementById('documents');
+    el.innerHTML = list.length ? list.map(d => `
+      <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 text-sm">
+        <span><span class="font-medium text-gray-900">${d.doc_ref}</span> <span class="text-gray-500">${d.title || d.doc_type_label}</span></span>
+        <button onclick="openPdf('/api/projects/documents/${d.id}/pdf')" class="text-primary-600 hover:underline"><i class="fas fa-file-pdf mr-1"></i>PDF</button>
+      </div>`).join('') : '<p class="text-sm text-gray-400">No documents generated yet.</p>';
+  }
+
+  const DOC_FIELDS = {
+    END: [['title', 'Title', 'Goodwill Discount Endorsement'], ['original_value', 'Original value', '', 'number'],
+          ['discount', 'Adjustment / discount', '', 'number'], ['revised_value', 'Revised value', '', 'number'],
+          ['delay_period', 'Period', '31 Mar – 23 Apr 2026'], ['reason', 'Reason', ''],
+          ['purpose', 'Purpose', '', 'textarea'], ['acknowledgement', 'Acknowledgement', '', 'textarea']],
+    PMN: [['title', 'Title', 'Project Migration Notice'], ['notice', 'Notice', '', 'textarea'],
+          ['retired', 'Retired (one per line)', '', 'textarea'], ['replacement', 'Replacement (one per line)', '', 'textarea'],
+          ['reasons', 'Reasons (issue | severity, one per line)', '', 'textarea'], ['acknowledgement', 'Acknowledgement', '', 'textarea']],
+  };
+  window.newDoc = function (type) {
+    document.getElementById('doc-modal-title').textContent = type === 'END' ? 'New Endorsement' : 'New Migration Notice';
+    document.getElementById('doc-modal-fields').innerHTML = DOC_FIELDS[type].map(([id, label, ph, t]) =>
+      `<div><label class="block text-xs font-medium text-gray-500 mb-1">${label}</label>${
+        t === 'textarea' ? `<textarea id="dm-${id}" rows="2" placeholder="${ph}" class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm"></textarea>`
+        : `<input id="dm-${id}" type="${t || 'text'}" placeholder="${ph}" class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">`}</div>`).join('');
+    const modal = document.getElementById('doc-modal');
+    modal.classList.remove('hidden'); modal.classList.add('flex');
+    document.getElementById('doc-modal-save').onclick = async () => {
+      const get = id => (document.getElementById('dm-' + id) || {}).value || '';
+      const data = {};
+      DOC_FIELDS[type].forEach(([id, , , t]) => {
+        if (id === 'title') return;
+        let v = get(id);
+        if (['original_value', 'discount', 'revised_value'].includes(id)) v = parseFloat(v) || 0;
+        else if (id === 'retired' || id === 'replacement') v = v.split('\n').map(s => s.trim()).filter(Boolean);
+        else if (id === 'reasons') v = v.split('\n').map(s => s.trim()).filter(Boolean).map(line => {
+          const [issue, severity] = line.split('|'); return { issue: (issue || '').trim(), severity: (severity || '').trim() };
+        });
+        data[id] = v;
+      });
+      try {
+        const doc = await apiFetch(`/projects/${PROJECT_ID}/documents`, { method: 'POST',
+          body: JSON.stringify({ doc_type: type, title: get('title'), data }) });
+        modal.classList.add('hidden');
+        showToast(`${doc.doc_ref} created`, 'success');
+        loadDocuments();
+        openPdf(`/api/projects/documents/${doc.id}/pdf`);
+      } catch (e) {}
+    };
+  };
+
   loadOverview();
   loadMetrics();
   loadSprints();
   loadTasks();
   loadExpenses();
+  loadSchedule();
+  loadPhases();
+  loadDocuments();
 </script>
 {% endblock %}

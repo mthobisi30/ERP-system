@@ -1,13 +1,28 @@
 """Project Management Routes"""
 from datetime import date
 
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required
+from flask import Blueprint, request, jsonify, Response
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from config.database import db
-from app.models.project import Project, Sprint, Milestone
+from app.models.project import Project, Sprint, Milestone, ProjectPhase, PhaseDeliverable
+from app.models.projectdoc import ProjectDocument, DOC_TYPES
 from app.models.schedule import TimeEntry
+from app.models.settings import CompanySettings
+from app.services import pdf_service
 
 projects_bp = Blueprint('projects', __name__)
+
+_MILESTONE_FIELDS = {'sequence', 'name', 'description', 'trigger', 'amount',
+                     'invoice_ref', 'payment_status', 'status'}
+_PHASE_FIELDS = {'number', 'total_phases', 'title', 'phase_value', 'gate_criteria',
+                 'gate_status', 'additional_scope', 'triggers_invoice_ref', 'status'}
+
+
+def _pdf_response(pdf, ref):
+    if pdf is None:
+        return jsonify({'error': 'Not found'}), 404
+    return Response(pdf, mimetype='application/pdf',
+                    headers={'Content-Disposition': f'inline; filename="{ref}.pdf"'})
 
 
 def _parse_date(value, default=None):
@@ -78,12 +93,156 @@ def get_milestones(project_id):
 @projects_bp.route('/<project_id>/milestones', methods=['POST'])
 @jwt_required()
 def create_milestone(project_id):
-    data = request.get_json()
-    data['project_id'] = project_id
-    milestone = Milestone(**data)
-    db.session.add(milestone)
+    data = request.get_json() or {}
+    if not data.get('name'):
+        return jsonify({'error': 'name is required'}), 400
+    m = Milestone(project_id=project_id, due_date=_parse_date(data.get('due_date')))
+    for k in _MILESTONE_FIELDS:
+        if k in data:
+            setattr(m, k, data[k])
+    db.session.add(m)
     db.session.commit()
-    return jsonify(milestone.to_dict()), 201
+    return jsonify(m.to_dict()), 201
+
+@projects_bp.route('/milestones/<milestone_id>', methods=['PUT'])
+@jwt_required()
+def update_milestone(milestone_id):
+    m = Milestone.query.get_or_404(milestone_id)
+    data = request.get_json() or {}
+    for k in _MILESTONE_FIELDS:
+        if k in data:
+            setattr(m, k, data[k])
+    if 'due_date' in data:
+        m.due_date = _parse_date(data['due_date'], m.due_date)
+    db.session.commit()
+    return jsonify(m.to_dict()), 200
+
+@projects_bp.route('/milestones/<milestone_id>', methods=['DELETE'])
+@jwt_required()
+def delete_milestone(milestone_id):
+    m = Milestone.query.get_or_404(milestone_id)
+    db.session.delete(m)
+    db.session.commit()
+    return jsonify({'message': 'Milestone deleted'}), 200
+
+# ---- Phases & deliverables ----
+
+@projects_bp.route('/<project_id>/phases', methods=['GET'])
+@jwt_required()
+def get_phases(project_id):
+    phases = ProjectPhase.query.filter_by(project_id=project_id).order_by(ProjectPhase.number).all()
+    return jsonify({'phases': [p.to_dict(with_deliverables=True) for p in phases]}), 200
+
+@projects_bp.route('/<project_id>/phases', methods=['POST'])
+@jwt_required()
+def create_phase(project_id):
+    data = request.get_json() or {}
+    if not data.get('title'):
+        return jsonify({'error': 'title is required'}), 400
+    ph = ProjectPhase(project_id=project_id,
+                      period_start=_parse_date(data.get('period_start')),
+                      period_end=_parse_date(data.get('period_end')))
+    for k in _PHASE_FIELDS:
+        if k in data:
+            setattr(ph, k, data[k])
+    db.session.add(ph)
+    db.session.commit()
+    return jsonify(ph.to_dict(with_deliverables=True)), 201
+
+@projects_bp.route('/phases/<phase_id>', methods=['PUT'])
+@jwt_required()
+def update_phase(phase_id):
+    ph = ProjectPhase.query.get_or_404(phase_id)
+    data = request.get_json() or {}
+    for k in _PHASE_FIELDS:
+        if k in data:
+            setattr(ph, k, data[k])
+    if 'period_start' in data:
+        ph.period_start = _parse_date(data['period_start'], ph.period_start)
+    if 'period_end' in data:
+        ph.period_end = _parse_date(data['period_end'], ph.period_end)
+    db.session.commit()
+    return jsonify(ph.to_dict(with_deliverables=True)), 200
+
+@projects_bp.route('/phases/<phase_id>', methods=['DELETE'])
+@jwt_required()
+def delete_phase(phase_id):
+    ph = ProjectPhase.query.get_or_404(phase_id)
+    PhaseDeliverable.query.filter_by(phase_id=ph.id).delete()
+    db.session.delete(ph)
+    db.session.commit()
+    return jsonify({'message': 'Phase deleted'}), 200
+
+@projects_bp.route('/phases/<phase_id>/deliverables', methods=['POST'])
+@jwt_required()
+def add_deliverable(phase_id):
+    data = request.get_json() or {}
+    if not data.get('name'):
+        return jsonify({'error': 'name is required'}), 400
+    d = PhaseDeliverable(phase_id=phase_id, name=data['name'],
+                         implementation=data.get('implementation'), evidence=data.get('evidence'),
+                         status=data.get('status', 'Complete'), sequence=data.get('sequence', 0))
+    db.session.add(d)
+    db.session.commit()
+    return jsonify(d.to_dict()), 201
+
+@projects_bp.route('/deliverables/<deliverable_id>', methods=['DELETE'])
+@jwt_required()
+def delete_deliverable(deliverable_id):
+    d = PhaseDeliverable.query.get_or_404(deliverable_id)
+    db.session.delete(d)
+    db.session.commit()
+    return jsonify({'message': 'Deliverable deleted'}), 200
+
+# ---- Generated documents (registry + PDF) ----
+
+@projects_bp.route('/<project_id>/documents', methods=['GET'])
+@jwt_required()
+def list_documents(project_id):
+    docs = (ProjectDocument.query.filter_by(project_id=project_id)
+            .order_by(ProjectDocument.created_at.desc()).all())
+    return jsonify({'documents': [d.to_dict() for d in docs]}), 200
+
+@projects_bp.route('/<project_id>/documents', methods=['POST'])
+@jwt_required()
+def create_document(project_id):
+    """Create an Endorsement (END) or Project Migration Notice (PMN) record.
+
+    Body: {doc_type: 'END'|'PMN', title, data: {...}}  -> auto-numbered ref.
+    """
+    data = request.get_json() or {}
+    doc_type = (data.get('doc_type') or '').upper()
+    if doc_type not in ('END', 'PMN'):
+        return jsonify({'error': 'doc_type must be END or PMN'}), 400
+    prefix = (CompanySettings.query.first().doc_ref_prefix
+              if CompanySettings.query.first() else 'RSS') or 'RSS'
+    ref, seq = ProjectDocument.next_ref(doc_type, prefix)
+    doc = ProjectDocument(project_id=project_id, doc_type=doc_type, doc_ref=ref,
+                          year=int(ref.split('-')[2]), sequence=seq,
+                          title=data.get('title') or DOC_TYPES.get(doc_type),
+                          data=data.get('data') or {}, created_by=get_jwt_identity())
+    try:
+        db.session.add(doc)
+        db.session.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        return jsonify({'error': 'Could not create document', 'detail': str(exc)}), 400
+    return jsonify(doc.to_dict()), 201
+
+@projects_bp.route('/documents/<doc_id>/pdf', methods=['GET'])
+@jwt_required()
+def document_pdf(doc_id):
+    doc = ProjectDocument.query.get_or_404(doc_id)
+    if doc.doc_type == 'END':
+        return _pdf_response(*pdf_service.endorsement_pdf(doc.id))
+    if doc.doc_type == 'PMN':
+        return _pdf_response(*pdf_service.pmn_pdf(doc.id))
+    return jsonify({'error': 'No generator for this document type'}), 400
+
+@projects_bp.route('/phases/<phase_id>/report.pdf', methods=['GET'])
+@jwt_required()
+def phase_report_pdf(phase_id):
+    return _pdf_response(*pdf_service.milestone_report_pdf(phase_id))
 
 # ---- Sprints ----
 

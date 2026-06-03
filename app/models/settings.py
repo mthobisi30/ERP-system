@@ -13,7 +13,46 @@ class CompanySettings(db.Model):
     currency = db.Column(db.String(10), default='USD')
     timezone = db.Column(db.String(50))
     settings = db.Column(JSONB)
+    # --- Issuer / letterhead (drives generated documents) ---
+    legal_name = db.Column(db.String(250))            # e.g. "Rephina Software Solutions (PTY) LTD"
+    registration_number = db.Column(db.String(60))    # e.g. "2026/250285/07"
+    signatory_name = db.Column(db.String(150))        # who signs documents
+    address = db.Column(db.Text)                       # full postal/physical address
+    website = db.Column(db.String(200))
+    vat_registered = db.Column(db.Boolean, default=True, nullable=False)
+    vat_number = db.Column(db.String(60))
+    doc_ref_prefix = db.Column(db.String(10), default='RSS')  # RSS-INV-2026-001
+    # Banking (for invoices)
+    bank_name = db.Column(db.String(120))
+    bank_account_name = db.Column(db.String(150))
+    bank_account_number = db.Column(db.String(40))
+    bank_branch_code = db.Column(db.String(20))
+    bank_account_type = db.Column(db.String(40))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'company_name': self.company_name,
+            'legal_name': self.legal_name,
+            'registration_number': self.registration_number,
+            'signatory_name': self.signatory_name,
+            'email': self.email,
+            'phone': self.phone,
+            'address': self.address,
+            'website': self.website,
+            'currency': self.currency,
+            'timezone': self.timezone,
+            'vat_registered': self.vat_registered,
+            'vat_number': self.vat_number,
+            'doc_ref_prefix': self.doc_ref_prefix,
+            'bank_name': self.bank_name,
+            'bank_account_name': self.bank_account_name,
+            'bank_account_number': self.bank_account_number,
+            'bank_branch_code': self.bank_branch_code,
+            'bank_account_type': self.bank_account_type,
+        }
 
 class UserPreferences(db.Model):
     __tablename__ = 'user_preferences'

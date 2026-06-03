@@ -11,8 +11,8 @@ settings_bp = Blueprint('settings', __name__)
 def get_settings():
     settings = CompanySettings.query.first()
     if not settings:
-        return jsonify({'message': 'No settings found'}), 404
-    return jsonify({'company_name': settings.company_name, 'email': settings.email, 'currency': settings.currency}), 200
+        return jsonify({'company_name': None, 'vat_registered': True, 'doc_ref_prefix': 'RSS'}), 200
+    return jsonify(settings.to_dict()), 200
 
 @settings_bp.route('', methods=['PUT'])
 @admin_required

@@ -39,3 +39,6 @@ htmlcov/
 
 # ---- Migrations: keep versions, ignore nothing by default ----
 # (Alembic versions ARE committed)
+
+# Reference client documents (contain banking proof + client PII) — keep local only
+docs/
