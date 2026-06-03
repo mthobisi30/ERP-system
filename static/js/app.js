@@ -253,8 +253,8 @@ function renderTable(containerId, list, title) {
                     <i class="fas fa-plus mr-2"></i> Add New
                 </button>
             </div>
-            <div id="create-modal" class="fixed inset-0 bg-gray-900/50 hidden items-center justify-center p-4 z-50">
-                <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+            <div id="create-modal" class="fixed inset-0 bg-gray-900/50 hidden items-center justify-center p-4 z-50 overflow-y-auto">
+                <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto my-8">
                     <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
                         <h3 class="text-lg font-bold text-gray-900" id="modal-title">Create New</h3>
                         <button onclick="document.getElementById('create-modal').classList.add('hidden'); document.getElementById('create-modal').classList.remove('flex');" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
