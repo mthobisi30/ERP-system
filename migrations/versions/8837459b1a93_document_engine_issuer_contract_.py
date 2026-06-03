@@ -75,7 +75,7 @@ def upgrade() -> None:
     op.add_column('company_settings', sa.Column('signatory_name', sa.String(length=150), nullable=True))
     op.add_column('company_settings', sa.Column('address', sa.Text(), nullable=True))
     op.add_column('company_settings', sa.Column('website', sa.String(length=200), nullable=True))
-    op.add_column('company_settings', sa.Column('vat_registered', sa.Boolean(), nullable=False))
+    op.add_column('company_settings', sa.Column('vat_registered', sa.Boolean(), server_default=sa.true(), nullable=False))
     op.add_column('company_settings', sa.Column('vat_number', sa.String(length=60), nullable=True))
     op.add_column('company_settings', sa.Column('doc_ref_prefix', sa.String(length=10), nullable=True))
     op.add_column('company_settings', sa.Column('bank_name', sa.String(length=120), nullable=True))
