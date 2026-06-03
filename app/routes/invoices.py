@@ -7,8 +7,10 @@ from flask_jwt_extended import jwt_required
 
 from config.database import db
 from app.models.accounting import Invoice, InvoiceItem
+from app.models.customer import Customer
 from app.services.billing_service import generate_invoice_from_unbilled_time, _next_invoice_number
 from app.services.pdf_service import invoice_pdf
+from app.services.email_service import EmailService
 from app.services.activity import record
 
 invoices_bp = Blueprint('invoices', __name__)
@@ -138,3 +140,24 @@ def invoice_pdf_route(invoice_id):
         return jsonify({'error': 'Invoice not found'}), 404
     return Response(pdf, mimetype='application/pdf',
                     headers={'Content-Disposition': f'inline; filename="{number}.pdf"'})
+
+
+@invoices_bp.route('/<invoice_id>/send', methods=['POST'])
+@jwt_required()
+def send_invoice(invoice_id):
+    """Email the invoice PDF to the client (or an explicit address)."""
+    inv = Invoice.query.get_or_404(invoice_id)
+    customer = db.session.get(Customer, inv.customer_id) if inv.customer_id else None
+    to = (request.get_json(silent=True) or {}).get('email') or (customer.email if customer else None)
+    if not to:
+        return jsonify({'error': 'No recipient email — set one on the client or pass "email".'}), 400
+    pdf, number = invoice_pdf(inv.id)
+    sent = EmailService.send_with_attachment(
+        f"Invoice {number}", [to], f"Please find attached invoice {number}.", f"{number}.pdf", pdf)
+    if not sent:
+        return jsonify({'sent': False, 'message': 'Email is not configured (set MAIL_* env vars).'}), 200
+    inv.status = inv.status if inv.status not in ('draft',) else 'sent'
+    db.session.commit()
+    record('invoice.sent', 'invoice', inv.id, project_id=inv.project_id, customer_id=inv.customer_id,
+           summary=f"Invoice {number} emailed to {to}")
+    return jsonify({'sent': True, 'to': to}), 200

@@ -21,10 +21,12 @@ def flask_app():
         pytest.skip('TEST_DATABASE_URL not set')
     os.environ['DATABASE_URL'] = TEST_DB
     os.environ['FLASK_ENV'] = 'production'  # quiet SQL echo
+    os.environ['MAIL_USERNAME'] = ''        # mail unconfigured in tests (no real SMTP)
     import index
     from app.extensions import limiter
     limiter.enabled = False  # don't rate-limit tests
     index.app.config['TESTING'] = True
+    index.app.config['MAIL_SUPPRESS_SEND'] = True  # never hit SMTP in tests
     return index.app
 
 

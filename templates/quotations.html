@@ -127,6 +127,14 @@
     } else alert(data.error || 'Action failed');
   };
 
+  window.sendQuote = async function (id) {
+    try {
+      const r = await apiFetch(`/sales/quotations/${id}/send`, { method: 'POST', body: JSON.stringify({}) });
+      showToast(r.sent ? `Emailed to ${r.to}` : (r.message || 'Email not configured'), r.sent ? 'success' : 'info');
+      if (r.sent) loadQuotes();
+    } catch (e) {}
+  };
+
   async function loadQuotes() {
     const data = await fetchData('/sales/quotations');
     const body = document.getElementById('quotes-body');
@@ -148,6 +156,7 @@
             <td class="px-5 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-${ST[q.status] || 'gray'}-100 text-${ST[q.status] || 'gray'}-800 capitalize">${q.status}</span></td>
             <td class="px-5 py-3 text-right text-sm space-x-2">
               <button onclick="openPdf('/api/sales/quotations/${q.id}/pdf')" class="text-gray-500 hover:text-primary-600" title="PDF"><i class="fas fa-file-pdf"></i></button>
+              <button onclick="sendQuote('${q.id}')" class="text-gray-500 hover:text-primary-600" title="Email to client"><i class="fas fa-paper-plane"></i></button>
               ${q.status === 'draft' ? `<button onclick="quoteAction('${q.id}','sent')" class="text-blue-600 hover:underline">Send</button>` : ''}
               ${(q.status === 'draft' || q.status === 'sent') ? `<button onclick="quoteAction('${q.id}','accept')" class="text-green-600 hover:underline">Accept</button>` : ''}
               ${(q.status === 'draft' || q.status === 'sent') ? `<button onclick="quoteAction('${q.id}','declined')" class="text-red-500 hover:underline">Decline</button>` : ''}

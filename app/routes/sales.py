@@ -6,7 +6,9 @@ from flask_jwt_extended import jwt_required
 from config.database import db
 from app.models.sales import SalesOrder, Quotation, QuotationItem
 from app.models.project import Project
+from app.models.customer import Customer
 from app.services.pdf_service import quote_pdf
+from app.services.email_service import EmailService
 from app.services.activity import record
 
 sales_bp = Blueprint('sales', __name__)
@@ -124,6 +126,26 @@ def quotation_pdf_route(quote_id):
         return jsonify({'error': 'Quote not found'}), 404
     return Response(pdf, mimetype='application/pdf',
                     headers={'Content-Disposition': f'inline; filename="{number}.pdf"'})
+
+@sales_bp.route('/quotations/<quote_id>/send', methods=['POST'])
+@jwt_required()
+def send_quotation(quote_id):
+    """Email the quote PDF to the client (or an explicit address)."""
+    q = Quotation.query.get_or_404(quote_id)
+    customer = db.session.get(Customer, q.customer_id) if q.customer_id else None
+    to = (request.get_json(silent=True) or {}).get('email') or (customer.email if customer else None)
+    if not to:
+        return jsonify({'error': 'No recipient email — set one on the client or pass "email".'}), 400
+    pdf, number = quote_pdf(q.id)
+    sent = EmailService.send_with_attachment(
+        f"Quotation {number}", [to], f"Please find attached quotation {number}.", f"{number}.pdf", pdf)
+    if not sent:
+        return jsonify({'sent': False, 'message': 'Email is not configured (set MAIL_* env vars).'}), 200
+    if q.status == 'draft':
+        q.status = 'sent'
+        db.session.commit()
+    record('quote.sent', 'quotation', q.id, customer_id=q.customer_id, summary=f"Quote {number} emailed to {to}")
+    return jsonify({'sent': True, 'to': to}), 200
 
 @sales_bp.route('/quotations/<quote_id>/status', methods=['POST'])
 @jwt_required()

@@ -118,6 +118,14 @@
     }
   });
 
+  window.sendInvoice = async function (id) {
+    try {
+      const r = await apiFetch(`/invoices/${id}/send`, { method: 'POST', body: JSON.stringify({}) });
+      showToast(r.sent ? `Emailed to ${r.to}` : (r.message || 'Email not configured'), r.sent ? 'success' : 'info');
+      if (r.sent) loadInvoices();
+    } catch (e) {}
+  };
+
   async function loadInvoices() {
     const data = await fetchData('/invoices');
     const body = document.getElementById('invoices-body');
@@ -136,7 +144,10 @@
             <td class="px-5 py-3 text-sm text-right">${RMONEY(i.total_amount)}</td>
             <td class="px-5 py-3 text-sm text-right">${RMONEY(i.balance_due)}</td>
             <td class="px-5 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs bg-${STATUS_COLORS[i.status] || 'gray'}-100 text-${STATUS_COLORS[i.status] || 'gray'}-800 capitalize">${i.status}</span></td>
-            <td class="px-5 py-3 text-right"><button onclick="openPdf('/api/invoices/${i.id}/pdf')" class="text-primary-600 hover:text-primary-800" title="Download PDF"><i class="fas fa-file-pdf"></i></button></td>
+            <td class="px-5 py-3 text-right whitespace-nowrap">
+              <button onclick="openPdf('/api/invoices/${i.id}/pdf')" class="text-primary-600 hover:text-primary-800 mr-3" title="Download PDF"><i class="fas fa-file-pdf"></i></button>
+              <button onclick="sendInvoice('${i.id}')" class="text-primary-600 hover:text-primary-800" title="Email to client"><i class="fas fa-paper-plane"></i></button>
+            </td>
           </tr>`).join('')}</tbody>
       </table>`;
   }
