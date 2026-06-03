@@ -32,18 +32,21 @@
 
 <script>
 const VIEW_SCHEMAS = {
-    'projects': { title: 'Project', fields: [ {id: 'name', label: 'Project Name', required: true}, {id: 'description', label: 'Description', type: 'textarea'}, {id: 'status', label: 'Status', type: 'select', options: ['active', 'paused', 'completed']} ] },
-    'tasks': { title: 'Task', fields: [ {id: 'title', label: 'Task Title', required: true}, {id: 'description', label: 'Description', type: 'textarea'}, {id: 'status', label: 'Status', type: 'select', options: ['todo', 'in_progress', 'done']}, {id: 'due_date', label: 'Due Date', type: 'date'} ] },
-    'customers': { title: 'Customer', fields: [ {id: 'name', label: 'Company Name', required: true}, {id: 'email', label: 'Email', type: 'email'}, {id: 'phone', label: 'Phone'}, {id: 'address', label: 'Address', type: 'textarea'} ] },
-    'leads': { title: 'Lead', fields: [ {id: 'name', label: 'Lead Name', required: true}, {id: 'email', label: 'Email', type: 'email'}, {id: 'phone', label: 'Phone'}, {id: 'source', label: 'Source'}, {id: 'status', label: 'Status', type: 'select', options: ['new', 'contacted', 'qualified', 'lost']} ] },
-    'opportunities': { title: 'Opportunity', fields: [ {id: 'name', label: 'Opportunity Name', required: true}, {id: 'amount', label: 'Estimated Value', type: 'number'}, {id: 'stage', label: 'Stage', type: 'select', options: ['discovery', 'proposal', 'negotiation', 'closed_won', 'closed_lost']} ] },
+    'tasks': { title: 'Task', fields: [ {id: 'title', label: 'Task Title', required: true}, {id: 'project_id', label: 'Project', type: 'rel', rel: 'projects'}, {id: 'description', label: 'Description', type: 'textarea'}, {id: 'status', label: 'Status', type: 'select', options: ['todo', 'in_progress', 'done']}, {id: 'priority', label: 'Priority', type: 'select', options: ['low', 'medium', 'high', 'urgent']}, {id: 'due_date', label: 'Due Date', type: 'date'} ] },
+    'customers': { title: 'Customer', fields: [ {id: 'company_name', label: 'Company Name', required: true}, {id: 'contact_person', label: 'Contact Person'}, {id: 'email', label: 'Email', type: 'email'}, {id: 'phone', label: 'Phone'}, {id: 'industry', label: 'Industry'} ] },
+    'leads': { title: 'Lead', fields: [ {id: 'contact_name', label: 'Lead Name', required: true}, {id: 'company_name', label: 'Company'}, {id: 'email', label: 'Email', type: 'email'}, {id: 'phone', label: 'Phone'}, {id: 'source', label: 'Source'}, {id: 'status', label: 'Status', type: 'select', options: ['new', 'contacted', 'qualified', 'lost']} ] },
+    'opportunities': { title: 'Opportunity', fields: [ {id: 'name', label: 'Opportunity Name', required: true}, {id: 'customer_id', label: 'Client', type: 'rel', rel: 'customers'}, {id: 'estimated_value', label: 'Estimated Value', type: 'number'}, {id: 'stage', label: 'Stage', type: 'select', options: ['prospecting', 'discovery', 'proposal', 'negotiation', 'closed_won', 'closed_lost']}, {id: 'probability', label: 'Probability %', type: 'number'} ] },
     'products': { title: 'Service', fields: [ {id: 'name', label: 'Service Name', required: true}, {id: 'description', label: 'Description', type: 'textarea'}, {id: 'unit_price', label: 'Day/Hour Rate (R)', type: 'number', required: true} ] },
     'hr': { title: 'Employee', fields: [ {id: 'first_name', label: 'First Name', required: true}, {id: 'last_name', label: 'Last Name', required: true}, {id: 'email', label: 'Email', type: 'email'}, {id: 'position', label: 'Position'}, {id: 'department', label: 'Department'} ] },
-    'invoices': { title: 'Invoice', fields: [ {id: 'invoice_number', label: 'Invoice Number', required: true}, {id: 'customer_id', label: 'Customer ID (UUID)'}, {id: 'total_amount', label: 'Total Amount', type: 'number'}, {id: 'due_date', label: 'Due Date', type: 'date'} ] },
-    'expenses': { title: 'Expense', fields: [ {id: 'description', label: 'Description', required: true}, {id: 'amount', label: 'Amount', type: 'number', required: true}, {id: 'category', label: 'Category', type: 'select', options: ['travel', 'office', 'utilities', 'marketing', 'other']}, {id: 'date', label: 'Date', type: 'date'} ] },
-    'tickets': { title: 'Support Ticket', fields: [ {id: 'subject', label: 'Subject', required: true}, {id: 'description', label: 'Description', type: 'textarea'}, {id: 'priority', label: 'Priority', type: 'select', options: ['low', 'medium', 'high', 'urgent']} ] },
+    'invoices': { title: 'Invoice', fields: [ {id: 'customer_id', label: 'Client', type: 'rel', rel: 'customers'}, {id: 'project_id', label: 'Project', type: 'rel', rel: 'projects'}, {id: 'subtotal', label: 'Subtotal (R)', type: 'number'}, {id: 'invoice_date', label: 'Invoice Date', type: 'date'}, {id: 'due_date', label: 'Due Date', type: 'date'} ] },
+    'expenses': { title: 'Expense', fields: [ {id: 'description', label: 'Description', required: true}, {id: 'project_id', label: 'Project', type: 'rel', rel: 'projects'}, {id: 'amount', label: 'Amount', type: 'number', required: true}, {id: 'category', label: 'Category', type: 'select', options: ['travel', 'office', 'software', 'subcontractor', 'marketing', 'other']}, {id: 'billable', label: 'Rechargeable?', type: 'select', options: ['false', 'true']}, {id: 'expense_date', label: 'Date', type: 'date'} ] },
+    'tickets': { title: 'Support Ticket', fields: [ {id: 'subject', label: 'Subject', required: true}, {id: 'customer_id', label: 'Client', type: 'rel', rel: 'customers'}, {id: 'project_id', label: 'Project', type: 'rel', rel: 'projects'}, {id: 'description', label: 'Description', type: 'textarea'}, {id: 'priority', label: 'Priority', type: 'select', options: ['low', 'medium', 'high', 'urgent']} ] },
     'schedule': { title: 'Event', fields: [ {id: 'title', label: 'Event Title', required: true}, {id: 'description', label: 'Description', type: 'textarea'}, {id: 'start_time', label: 'Start Time', type: 'datetime-local', required: true}, {id: 'end_time', label: 'End Time', type: 'datetime-local'} ] },
-    'documents': { title: 'Document', fields: [ {id: 'name', label: 'Document Name', required: true}, {id: 'category', label: 'Category'}, {id: 'file', label: 'File', type: 'file'} ] },
+    'documents': { title: 'Document', fields: [ {id: 'name', label: 'Document Name', required: true}, {id: 'category', label: 'Category'} ] },
+};
+const REL = {
+    customers: { url: '/customers', key: 'customers', label: c => `${c.customer_code ? '[' + c.customer_code + '] ' : ''}${c.company_name || c.contact_person || c.email || '—'}` },
+    projects: { url: '/projects?per_page=100', key: 'projects', label: p => `${p.project_code ? '[' + p.project_code + '] ' : ''}${p.name}` },
 };
 
 const VIEW_NAME = '{{ view_name }}';
@@ -54,14 +57,31 @@ document.addEventListener('DOMContentLoaded', function() {
     renderFormFields(schema.fields);
 });
 
-function renderFormFields(fields) {
+async function renderFormFields(fields) {
     const container = document.getElementById('form-fields');
+    // Prefetch related lists for any relation (dropdown) fields.
+    const relCache = {};
+    const rels = [...new Set(fields.filter(f => f.type === 'rel').map(f => f.rel))];
+    await Promise.all(rels.map(async r => {
+        const d = await fetchData(REL[r].url);
+        relCache[r] = (d && d[REL[r].key]) || [];
+    }));
     container.innerHTML = fields.map(f => {
         const colSpan = f.type === 'textarea' ? 'col-span-2' : '';
         const requiredAttr = f.required ? 'required' : '';
         const requiredStar = f.required ? '<span class="text-red-500 ml-1">*</span>' : '';
-        
-        if (f.type === 'select') {
+
+        if (f.type === 'rel') {
+            const items = relCache[f.rel] || [];
+            const opts = items.map(o => `<option value="${o.id}">${REL[f.rel].label(o)}</option>`).join('');
+            return `
+                <div class="${colSpan}">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">${f.label}${requiredStar}</label>
+                    <select name="${f.id}" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 bg-gray-50" ${requiredAttr}>
+                        <option value="">${items.length ? 'Select ' + f.label + '…' : 'None available'}</option>${opts}
+                    </select>
+                </div>`;
+        } else if (f.type === 'select') {
             return `
                 <div class="${colSpan}">
                     <label class="block text-sm font-medium text-gray-700 mb-2">${f.label}${requiredStar}</label>
@@ -89,8 +109,10 @@ function renderFormFields(fields) {
 document.getElementById('create-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     const formData = new FormData(this);
-    const body = Object.fromEntries(formData.entries());
-    
+    const body = {};
+    // Drop empty values so unselected dropdowns don't post "" into FK/UUID columns.
+    for (const [k, v] of formData.entries()) { if (v !== '' && v !== null) body[k] = v; }
+
     const token = localStorage.getItem('erp_token');
     if (!token) {
         alert('Please log in first');

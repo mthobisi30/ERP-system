@@ -662,32 +662,25 @@ async function handleCreateQuote(e) {
 }
 
 // View Schema Mapping for Dynamic Creation
+// Relation sources for dropdown (rel) fields.
+const REL = {
+    customers: { url: '/customers', key: 'customers', label: c => `${c.customer_code ? '[' + c.customer_code + '] ' : ''}${c.company_name || c.contact_person || '—'}` },
+    projects: { url: '/projects?per_page=100', key: 'projects', label: p => `${p.project_code ? '[' + p.project_code + '] ' : ''}${p.name}` },
+};
 const VIEW_SCHEMAS = {
-    'projects': { title: 'Project', fields: [ {id: 'name', label: 'Name'}, {id: 'customer_id', label: 'Customer ID (UUID)'}, {id: 'status', label: 'Status', type: 'select', options: ['active', 'paused', 'completed']} ] },
-    'tasks': { title: 'Task', fields: [ {id: 'title', label: 'Title'}, {id: 'project_id', label: 'Project ID (UUID)'}, {id: 'status', label: 'Status', type: 'select', options: ['todo', 'in_progress', 'done']}, {id: 'due_date', label: 'Due Date', type: 'date'} ] },
-    'users': { title: 'User', fields: [ {id: 'username', label: 'Username'}, {id: 'email', label: 'Email', type: 'email'}, {id: 'role', label: 'Role', type: 'select', options: ['admin', 'manager', 'employee']} ] },
-    'products': { title: 'Service', fields: [ {id: 'name', label: 'Service Name'}, {id: 'unit_price', label: 'Day/Hour Rate (R)', type: 'number'} ] },
-    'customers': { title: 'Customer', fields: [ {id: 'name', label: 'Company Name'}, {id: 'email', label: 'Email'}, {id: 'phone', label: 'Phone'} ] },
-    'hr': { title: 'Employee', fields: [ {id: 'first_name', label: 'First Name'}, {id: 'last_name', label: 'Last Name'}, {id: 'position', label: 'Position'} ] },
-    'leads': { title: 'Lead', fields: [ {id: 'name', label: 'Lead Name'}, {id: 'email', label: 'Email'}, {id: 'status', label: 'Status', type: 'select', options: ['new', 'contacted', 'qualified', 'lost']} ] },
-    'opportunities': { title: 'Opportunity', fields: [ {id: 'name', label: 'Opportunity Name'}, {id: 'amount', label: 'Estimated Value', type: 'number'}, {id: 'stage', label: 'Stage', type: 'select', options: ['discovery', 'proposal', 'negotiation', 'closed_won', 'closed_lost']} ] },
-    'tickets': { title: 'Support Ticket', fields: [ {id: 'subject', label: 'Subject'}, {id: 'priority', label: 'Priority', type: 'select', options: ['low', 'medium', 'high', 'urgent']} ] },
-    'accounting': { title: 'Account', fields: [{id: 'name', label: 'Account Name'}, {id: 'code', label: 'Account Code'}, {id: 'type', label: 'Type', type: 'select', options: ['asset', 'liability', 'equity', 'revenue', 'expense']}] },
-    'journal_entries': { title: 'Journal Entry', fields: [{id: 'ref_number', label: 'Reference'}, {id: 'description', label: 'Description'}, {id: 'date', label: 'Date', type: 'date'}] },
-    'attendance': { title: 'Attendance Record', fields: [{id: 'employee_id', label: 'Employee ID'}, {id: 'check_in', label: 'Check In', type: 'datetime-local'}, {id: 'status', label: 'Status', type: 'select', options: ['present', 'late', 'absent']}] },
-    'leaves': { title: 'Leave Request', fields: [{id: 'employee_id', label: 'Employee ID'}, {id: 'start_date', label: 'Start Date', type: 'date'}, {id: 'end_date', label: 'End Date', type: 'date'}, {id: 'status', label: 'Status', type: 'select', options: ['pending', 'approved', 'rejected']}] },
-    'invoices': { title: 'Invoice', fields: [{id: 'invoice_number', label: 'Invoice #'}, {id: 'customer_id', label: 'Customer ID'}, {id: 'total_amount', label: 'Amount', type: 'number'}] },
-    'expenses': { title: 'Expense', fields: [{id: 'category', label: 'Category'}, {id: 'amount', label: 'Amount', type: 'number'}, {id: 'date', label: 'Date', type: 'date'}] },
+    'tasks': { title: 'Task', fields: [ {id: 'title', label: 'Title'}, {id: 'project_id', label: 'Project', type: 'rel', rel: 'projects'}, {id: 'status', label: 'Status', type: 'select', options: ['todo', 'in_progress', 'done']}, {id: 'priority', label: 'Priority', type: 'select', options: ['low', 'medium', 'high', 'urgent']}, {id: 'due_date', label: 'Due Date', type: 'date'} ] },
+    'products': { title: 'Service', fields: [ {id: 'name', label: 'Service Name'}, {id: 'description', label: 'Description', type: 'textarea'}, {id: 'unit_price', label: 'Day/Hour Rate (R)', type: 'number'} ] },
+    'customers': { title: 'Customer', fields: [ {id: 'company_name', label: 'Company Name'}, {id: 'contact_person', label: 'Contact Person'}, {id: 'email', label: 'Email'}, {id: 'phone', label: 'Phone'}, {id: 'industry', label: 'Industry'}, {id: 'status', label: 'Status', type: 'select', options: ['active', 'inactive']} ] },
+    'hr': { title: 'Employee', fields: [ {id: 'first_name', label: 'First Name'}, {id: 'last_name', label: 'Last Name'}, {id: 'email', label: 'Email'}, {id: 'position', label: 'Position'}, {id: 'department', label: 'Department'} ] },
+    'leads': { title: 'Lead', fields: [ {id: 'contact_name', label: 'Lead Name'}, {id: 'company_name', label: 'Company'}, {id: 'email', label: 'Email'}, {id: 'phone', label: 'Phone'}, {id: 'status', label: 'Status', type: 'select', options: ['new', 'contacted', 'qualified', 'lost']} ] },
+    'opportunities': { title: 'Opportunity', fields: [ {id: 'name', label: 'Opportunity Name'}, {id: 'customer_id', label: 'Client', type: 'rel', rel: 'customers'}, {id: 'estimated_value', label: 'Estimated Value', type: 'number'}, {id: 'stage', label: 'Stage', type: 'select', options: ['prospecting', 'discovery', 'proposal', 'negotiation', 'closed_won', 'closed_lost']}, {id: 'probability', label: 'Probability %', type: 'number'} ] },
+    'tickets': { title: 'Support Ticket', fields: [ {id: 'subject', label: 'Subject'}, {id: 'customer_id', label: 'Client', type: 'rel', rel: 'customers'}, {id: 'project_id', label: 'Project', type: 'rel', rel: 'projects'}, {id: 'status', label: 'Status', type: 'select', options: ['open', 'in_progress', 'resolved', 'closed']}, {id: 'priority', label: 'Priority', type: 'select', options: ['low', 'medium', 'high', 'urgent']} ] },
+    'invoices': { title: 'Invoice', fields: [{id: 'status', label: 'Status', type: 'select', options: ['draft', 'sent', 'paid', 'overdue', 'cancelled']}, {id: 'due_date', label: 'Due Date', type: 'date'}] },
+    'expenses': { title: 'Expense', fields: [{id: 'description', label: 'Description'}, {id: 'amount', label: 'Amount', type: 'number'}, {id: 'category', label: 'Category'}, {id: 'billable', label: 'Rechargeable?', type: 'select', options: ['false', 'true']}, {id: 'expense_date', label: 'Date', type: 'date'}] },
     'schedule': { title: 'Event', fields: [{id: 'title', label: 'Title'}, {id: 'start_time', label: 'Start', type: 'datetime-local'}, {id: 'end_time', label: 'End', type: 'datetime-local'}] },
-    'documents': { title: 'Document', fields: [{id: 'name', label: 'Document Name'}, {id: 'type', label: 'Type'}] },
-    'quotations': { title: 'Quotation', fields: [{id: 'quotation_number', label: 'Quotation #'}, {id: 'customer_id', label: 'Customer ID'}, {id: 'total_amount', label: 'Amount', type: 'number'}] },
-    'sales': { title: 'Sales Order', fields: [{id: 'order_number', label: 'Order #'}, {id: 'customer_id', label: 'Customer ID'}] },
-    'performance': { title: 'Performance Review', fields: [{id: 'employee_id', label: 'Employee ID'}, {id: 'rating', label: 'Rating (1-5)', type: 'number'}] },
-    'time-tracking': { title: 'Time Entry', fields: [{id: 'employee_id', label: 'Employee ID'}, {id: 'hours', label: 'Hours', type: 'number'}, {id: 'date', label: 'Date', type: 'date'}] },
-    'notifications': { title: 'Notification', fields: [{id: 'title', label: 'Title'}, {id: 'message', label: 'Message'}] },
+    'documents': { title: 'Document', fields: [{id: 'name', label: 'Document Name'}, {id: 'category', label: 'Category'}] },
+    'quotations': { title: 'Quotation', fields: [{id: 'status', label: 'Status', type: 'select', options: ['draft', 'sent', 'accepted', 'declined']}] },
     'reports': { title: 'Report', fields: [{id: 'name', label: 'Report Name'}, {id: 'type', label: 'Type', type: 'select', options: ['financial', 'projects', 'time', 'utilization', 'hr']}] },
-    'logs': { title: 'Log Entry', fields: [{id: 'action', label: 'Action'}, {id: 'user_id', label: 'User ID'}] },
-    'settings': { title: 'Setting', fields: [{id: 'key', label: 'Setting Key'}, {id: 'value', label: 'Value'}] }
 };
 
 window.openCreateModal = function(viewKey) {
@@ -724,12 +717,21 @@ const initToolHandlers = () => {
 initToolHandlers();
 
 window.openEditModal = async function(viewKey, id) {
+    // Projects edit via the dedicated rich configuration form.
+    if (viewKey === 'projects') { window.location.href = '/projects/' + id + '/edit'; return; }
     const schema = VIEW_SCHEMAS[viewKey] || { title: viewKey, fields: [{id: 'name', label: 'Name'}] };
     let endpoint = API_ENDPOINT.replace(/\/stats$/, '').split('?')[0];
-    
+
     try {
         const item = await fetchData(`${endpoint}/${id}`);
         if (!item) return;
+
+        // Prefetch related lists for relation (dropdown) fields.
+        const relCache = {};
+        for (const r of [...new Set(schema.fields.filter(f => f.type === 'rel').map(f => f.rel))]) {
+            const d = await fetchData(REL[r].url);
+            relCache[r] = (d && d[REL[r].key]) || [];
+        }
 
         const modal = document.getElementById('create-modal');
         const title = document.getElementById('modal-title');
@@ -737,18 +739,21 @@ window.openEditModal = async function(viewKey, id) {
         const form = document.getElementById('dynamic-create-form');
 
         title.textContent = `Edit ${schema.title}`;
-        fieldsContainer.innerHTML = schema.fields.map(f => `
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">${f.label}</label>
-                ${f.type === 'select' ? `
-                    <select name="${f.id}" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500">
-                        ${f.options.map(o => `<option value="${o}" ${item[f.id] === o ? 'selected' : ''}>${o.replace(/_/g, ' ')}</option>`).join('')}
-                    </select>
-                ` : `
-                    <input type="${f.type || 'text'}" name="${f.id}" value="${item[f.id] || ''}" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500" required>
-                `}
-            </div>
-        `).join('');
+        fieldsContainer.innerHTML = schema.fields.map(f => {
+            const cur = item[f.id];
+            let control;
+            if (f.type === 'rel') {
+                const opts = (relCache[f.rel] || []).map(o => `<option value="${o.id}" ${String(cur) === String(o.id) ? 'selected' : ''}>${REL[f.rel].label(o)}</option>`).join('');
+                control = `<select name="${f.id}" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"><option value="">None</option>${opts}</select>`;
+            } else if (f.type === 'select') {
+                control = `<select name="${f.id}" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500">${f.options.map(o => `<option value="${o}" ${String(cur) === String(o) ? 'selected' : ''}>${o.replace(/_/g, ' ')}</option>`).join('')}</select>`;
+            } else if (f.type === 'textarea') {
+                control = `<textarea name="${f.id}" rows="3" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500">${cur || ''}</textarea>`;
+            } else {
+                control = `<input type="${f.type || 'text'}" name="${f.id}" value="${cur != null ? cur : ''}" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500">`;
+            }
+            return `<div><label class="block text-sm font-medium text-gray-700 mb-1">${f.label}</label>${control}</div>`;
+        }).join('');
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -756,7 +761,8 @@ window.openEditModal = async function(viewKey, id) {
         form.onsubmit = async (e) => {
             e.preventDefault();
             const formData = new FormData(form);
-            const body = Object.fromEntries(formData.entries());
+            const body = {};
+            for (const [k, v] of formData.entries()) { if (v !== '' && v !== null) body[k] = v; }
             try {
                 const response = await fetch(`${API_BASE}${endpoint}/${id}`, {
                     method: 'PUT',
