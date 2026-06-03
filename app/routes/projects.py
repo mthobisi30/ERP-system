@@ -8,6 +8,8 @@ from app.models.project import Project, Sprint, Milestone, ProjectPhase, PhaseDe
 from app.models.projectdoc import ProjectDocument, DOC_TYPES
 from app.models.schedule import TimeEntry
 from app.models.settings import CompanySettings
+from app.models.customer import Customer
+from app.utils.codes import next_project_code
 from app.services import pdf_service
 
 projects_bp = Blueprint('projects', __name__)
@@ -16,6 +18,24 @@ _MILESTONE_FIELDS = {'sequence', 'name', 'description', 'trigger', 'amount',
                      'invoice_ref', 'payment_status', 'status'}
 _PHASE_FIELDS = {'number', 'total_phases', 'title', 'phase_value', 'gate_criteria',
                  'gate_status', 'additional_scope', 'triggers_invoice_ref', 'status'}
+_PROJECT_FIELDS = {'name', 'description', 'customer_id', 'opportunity_id', 'status', 'priority',
+                   'project_manager_id', 'department_id', 'billing_type', 'billing_rate', 'currency',
+                   'system_name', 'contract_ref', 'contract_value', 'project_type', 'scope',
+                   'estimated_cost', 'estimated_hours', 'repository_url', 'live_url', 'readme',
+                   'budget', 'completion_percentage', 'project_code'}
+_PROJECT_DATES = {'start_date', 'end_date', 'contract_signed_date'}
+
+
+def _apply_project(p, data):
+    for k in _PROJECT_FIELDS:
+        if k in data:
+            setattr(p, k, data[k] or None if k.endswith('_id') else data[k])
+    for k in _PROJECT_DATES:
+        if k in data:
+            setattr(p, k, _parse_date(data[k]))
+    if 'tech_stack' in data:
+        ts = data['tech_stack']
+        p.tech_stack = ', '.join(ts) if isinstance(ts, list) else (ts or '')
 
 
 def _pdf_response(pdf, ref):
@@ -53,10 +73,20 @@ def get_projects():
 @projects_bp.route('', methods=['POST'])
 @jwt_required()
 def create_project():
-    data = request.get_json()
-    project = Project(**data)
-    db.session.add(project)
-    db.session.commit()
+    data = request.get_json() or {}
+    if not data.get('name'):
+        return jsonify({'error': 'name is required'}), 400
+    project = Project()
+    _apply_project(project, data)
+    if not project.project_code:
+        customer = db.session.get(Customer, project.customer_id) if project.customer_id else None
+        project.project_code = next_project_code(customer)
+    try:
+        db.session.add(project)
+        db.session.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        return jsonify({'error': 'Could not create project', 'detail': str(exc)}), 400
     return jsonify(project.to_dict()), 201
 
 @projects_bp.route('/<project_id>', methods=['GET'])
@@ -69,11 +99,12 @@ def get_project(project_id):
 @jwt_required()
 def update_project(project_id):
     project = Project.query.get_or_404(project_id)
-    data = request.get_json()
-    for key, value in data.items():
-        if hasattr(project, key):
-            setattr(project, key, value)
-    db.session.commit()
+    _apply_project(project, request.get_json() or {})
+    try:
+        db.session.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        return jsonify({'error': 'Could not update project', 'detail': str(exc)}), 400
     return jsonify(project.to_dict()), 200
 
 @projects_bp.route('/<project_id>', methods=['DELETE'])
@@ -243,6 +274,11 @@ def document_pdf(doc_id):
 @jwt_required()
 def phase_report_pdf(phase_id):
     return _pdf_response(*pdf_service.milestone_report_pdf(phase_id))
+
+@projects_bp.route('/<project_id>/brd.pdf', methods=['GET'])
+@jwt_required()
+def project_brd_pdf(project_id):
+    return _pdf_response(*pdf_service.brd_pdf(project_id))
 
 # ---- Sprints ----
 

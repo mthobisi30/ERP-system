@@ -1,0 +1,187 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+  <a href="/projects" class="text-sm text-gray-500 hover:text-primary-600"><i class="fas fa-arrow-left mr-1"></i> Projects</a>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-1"><i class="fas fa-sliders text-primary-500 mr-2"></i><span id="form-title">New Project</span></h2>
+    <p class="text-sm text-gray-500 mb-5">A meaningful project code is generated automatically from the client.</p>
+
+    <form id="pform" class="space-y-6">
+      <!-- Basics -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Client</label>
+          <select id="f-customer" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm focus:ring-2 focus:ring-primary-500"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Project name <span class="text-red-500">*</span></label>
+          <input id="f-name" required class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm focus:ring-2 focus:ring-primary-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">System / product name</label>
+          <input id="f-system" placeholder="e.g. Inspection Lifecycle Management System (ILMS)" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm focus:ring-2 focus:ring-primary-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Project type</label>
+          <select id="f-type" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm focus:ring-2 focus:ring-primary-500"></select>
+        </div>
+      </div>
+
+      <!-- Status / billing -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div><label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+          <select id="f-status" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm"></select></div>
+        <div><label class="block text-xs font-medium text-gray-500 mb-1">Priority</label>
+          <select id="f-priority" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm"></select></div>
+        <div><label class="block text-xs font-medium text-gray-500 mb-1">Billing</label>
+          <select id="f-billing" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm"></select></div>
+        <div><label class="block text-xs font-medium text-gray-500 mb-1">Currency</label>
+          <select id="f-currency" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm"></select></div>
+      </div>
+
+      <!-- Tech stack chips -->
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-2">Tech stack <span class="text-gray-400">(click to toggle, or add your own)</span></label>
+        <div id="tech-chips" class="flex flex-wrap gap-2"></div>
+        <div class="flex gap-2 mt-2">
+          <input id="tech-custom" placeholder="Add technology…" class="flex-1 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm">
+          <button type="button" id="tech-add" class="px-3 py-2 bg-gray-100 rounded-lg text-sm hover:bg-gray-200">Add</button>
+        </div>
+      </div>
+
+      <!-- Estimates / dates -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div><label class="block text-xs font-medium text-gray-500 mb-1">Start date</label>
+          <input type="date" id="f-start" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm"></div>
+        <div><label class="block text-xs font-medium text-gray-500 mb-1">End date</label>
+          <input type="date" id="f-end" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm"></div>
+        <div><label class="block text-xs font-medium text-gray-500 mb-1">Est. cost (R)</label>
+          <input type="number" step="0.01" id="f-cost" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm"></div>
+        <div><label class="block text-xs font-medium text-gray-500 mb-1">Est. hours</label>
+          <input type="number" step="0.5" id="f-hours" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm"></div>
+      </div>
+
+      <!-- Contract -->
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div><label class="block text-xs font-medium text-gray-500 mb-1">Contract ref</label>
+          <input id="f-cref" placeholder="MPIA-BRD-002 v2.0" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm"></div>
+        <div><label class="block text-xs font-medium text-gray-500 mb-1">Signed date</label>
+          <input type="date" id="f-csigned" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm"></div>
+        <div><label class="block text-xs font-medium text-gray-500 mb-1">Contract value (R)</label>
+          <input type="number" step="0.01" id="f-cvalue" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm"></div>
+      </div>
+
+      <!-- URLs -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div><label class="block text-xs font-medium text-gray-500 mb-1">Repository URL</label>
+          <input type="url" id="f-repo" placeholder="https://github.com/…" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm"></div>
+        <div><label class="block text-xs font-medium text-gray-500 mb-1">Live URL</label>
+          <input type="url" id="f-live" placeholder="https://…" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm"></div>
+      </div>
+
+      <div><label class="block text-xs font-medium text-gray-500 mb-1">Scope of work</label>
+        <textarea id="f-scope" rows="4" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm"></textarea></div>
+      <div><label class="block text-xs font-medium text-gray-500 mb-1">README / notes (markdown)</label>
+        <textarea id="f-readme" rows="4" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm"></textarea></div>
+
+      <div class="flex justify-end gap-3">
+        <a href="/projects" class="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg">Cancel</a>
+        <button type="submit" class="px-5 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-semibold">Save Project</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const PROJECT_ID = "{{ project_id }}";
+  const TYPES = ['Custom Software', 'Web Application', 'Mobile Application', 'AI & Automation',
+    'DevSecOps & Cloud', 'Data Engineering', 'Digital Transformation', 'Support & Managed Services',
+    'Cyber Security', 'Website'];
+  const STATUSES = ['planning', 'active', 'on_hold', 'completed', 'cancelled'];
+  const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
+  const BILLING = ['time_and_materials', 'fixed_price', 'retainer'];
+  const CURRENCIES = ['ZAR', 'USD', 'EUR', 'GBP'];
+  const TECH = ['Python', 'Flask', 'Django', 'FastAPI', 'Node.js', 'TypeScript', 'React', 'Next.js',
+    'Vue', 'Flutter', 'React Native', 'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'Docker', 'Kubernetes',
+    'AWS', 'GCP', 'Azure', 'Vercel', 'Tailwind CSS', 'OpenAI', 'LangChain'];
+  let selectedTech = new Set();
+
+  const opt = (v, label) => `<option value="${v}">${label || v}</option>`;
+  const fill = (id, arr, cap) => document.getElementById(id).innerHTML =
+    arr.map(v => opt(v, cap ? v.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : v)).join('');
+
+  fill('f-type', ['', ...TYPES]); fill('f-status', STATUSES, true);
+  fill('f-priority', PRIORITIES, true); fill('f-billing', BILLING, true); fill('f-currency', CURRENCIES);
+
+  function renderChips() {
+    const all = [...new Set([...TECH, ...selectedTech])];
+    document.getElementById('tech-chips').innerHTML = all.map(t => {
+      const on = selectedTech.has(t);
+      return `<button type="button" data-t="${t}" class="px-3 py-1.5 rounded-full text-xs border transition ${on ? 'bg-primary-600 text-white border-primary-600' : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-primary-300'}">${t}</button>`;
+    }).join('');
+    document.querySelectorAll('#tech-chips button').forEach(b => b.onclick = () => {
+      const t = b.dataset.t; selectedTech.has(t) ? selectedTech.delete(t) : selectedTech.add(t); renderChips();
+    });
+  }
+  document.getElementById('tech-add').onclick = () => {
+    const v = document.getElementById('tech-custom').value.trim();
+    if (v) { selectedTech.add(v); document.getElementById('tech-custom').value = ''; renderChips(); }
+  };
+
+  async function loadClients(selected) {
+    const data = await fetchData('/customers');
+    const list = (data && data.customers) || [];
+    document.getElementById('f-customer').innerHTML = '<option value="">— No client —</option>' +
+      list.map(c => `<option value="${c.id}" ${c.id === selected ? 'selected' : ''}>${c.customer_code ? '[' + c.customer_code + '] ' : ''}${c.company_name || c.contact_person}</option>`).join('');
+  }
+
+  async function init() {
+    let p = null;
+    if (PROJECT_ID) {
+      document.getElementById('form-title').textContent = 'Edit Project';
+      p = await fetchData(`/projects/${PROJECT_ID}`);
+    }
+    await loadClients(p ? p.customer_id : null);
+    if (p) {
+      const set = (id, v) => { if (v !== null && v !== undefined) document.getElementById(id).value = v; };
+      set('f-name', p.name); set('f-system', p.system_name); set('f-type', p.project_type || '');
+      set('f-status', p.status); set('f-priority', p.priority); set('f-billing', p.billing_type);
+      set('f-currency', p.currency || 'ZAR'); set('f-start', p.start_date); set('f-end', p.end_date);
+      set('f-cost', p.estimated_cost); set('f-hours', p.estimated_hours); set('f-cref', p.contract_ref);
+      set('f-csigned', p.contract_signed_date); set('f-cvalue', p.contract_value);
+      set('f-repo', p.repository_url); set('f-live', p.live_url); set('f-scope', p.scope); set('f-readme', p.readme);
+      (p.tech_stack || []).forEach(t => selectedTech.add(t));
+    }
+    renderChips();
+  }
+
+  document.getElementById('pform').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const g = id => document.getElementById(id).value;
+    const num = id => g(id) === '' ? null : parseFloat(g(id));
+    const body = {
+      name: g('f-name'), system_name: g('f-system'), customer_id: g('f-customer') || null,
+      project_type: g('f-type') || null, status: g('f-status'), priority: g('f-priority'),
+      billing_type: g('f-billing'), currency: g('f-currency'),
+      start_date: g('f-start') || null, end_date: g('f-end') || null,
+      estimated_cost: num('f-cost'), estimated_hours: num('f-hours'),
+      contract_ref: g('f-cref') || null, contract_signed_date: g('f-csigned') || null,
+      contract_value: num('f-cvalue'), repository_url: g('f-repo') || null, live_url: g('f-live') || null,
+      scope: g('f-scope') || null, readme: g('f-readme') || null, tech_stack: [...selectedTech],
+    };
+    if (!body.name) { showToast('Project name is required', 'error'); return; }
+    try {
+      const p = await apiFetch(PROJECT_ID ? `/projects/${PROJECT_ID}` : '/projects',
+        { method: PROJECT_ID ? 'PUT' : 'POST', body: JSON.stringify(body) });
+      showToast(`Project ${p.project_code || ''} saved`, 'success');
+      setTimeout(() => window.location.href = `/projects/${p.id}`, 600);
+    } catch (e) {}
+  });
+
+  init();
+</script>
+{% endblock %}

@@ -28,6 +28,15 @@ class Project(db.Model):
     contract_ref = db.Column(db.String(80))           # e.g. "MPIA-BRD-002 v2.0"
     contract_signed_date = db.Column(db.Date)
     contract_value = db.Column(db.Numeric(15, 2))
+    # Configuration (what kind of project this is)
+    project_type = db.Column(db.String(60))            # Custom Software | Web App | Mobile App | ...
+    tech_stack = db.Column(db.Text)                    # comma-separated tags
+    scope = db.Column(db.Text)                         # scope of work (markdown)
+    estimated_cost = db.Column(db.Numeric(15, 2))
+    estimated_hours = db.Column(db.Numeric(10, 2))
+    repository_url = db.Column(db.String(300))
+    live_url = db.Column(db.String(300))
+    readme = db.Column(db.Text)                        # README / project notes (markdown)
     budget = db.Column(db.Numeric(15, 2))
     actual_cost = db.Column(db.Numeric(15, 2), default=0)
     start_date = db.Column(db.Date)
@@ -54,6 +63,14 @@ class Project(db.Model):
             'contract_ref': self.contract_ref,
             'contract_signed_date': self.contract_signed_date.isoformat() if self.contract_signed_date else None,
             'contract_value': float(self.contract_value) if self.contract_value else None,
+            'project_type': self.project_type,
+            'tech_stack': [t.strip() for t in (self.tech_stack or '').split(',') if t.strip()],
+            'scope': self.scope,
+            'estimated_cost': float(self.estimated_cost) if self.estimated_cost is not None else None,
+            'estimated_hours': float(self.estimated_hours) if self.estimated_hours is not None else None,
+            'repository_url': self.repository_url,
+            'live_url': self.live_url,
+            'readme': self.readme,
             'budget': float(self.budget) if self.budget else None,
             'actual_cost': float(self.actual_cost) if self.actual_cost else None,
             'start_date': self.start_date.isoformat() if self.start_date else None,

@@ -135,20 +135,32 @@
     customers = Object.fromEntries(((custData && custData.customers) || []).map(c => [c.id, c.company_name || c.contact_person || '—']));
     if (!p) { document.getElementById('overview').innerHTML = '<p class="text-red-500 text-sm">Project not found.</p>'; return; }
     document.title = `Rephina Software ERP | ${p.name}`;
+    const tech = (p.tech_stack || []).map(t => `<span class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">${t}</span>`).join(' ');
     document.getElementById('overview').innerHTML = `
       <div class="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h2 class="text-2xl font-bold text-gray-900">${p.name}</h2>
-          <p class="text-sm text-gray-500 mt-1">${customers[p.customer_id] || 'No client'} · ${(p.billing_type||'').replace(/_/g,' ')}</p>
+          <div class="flex items-center gap-2 flex-wrap">
+            ${p.project_code ? `<span class="px-2 py-0.5 rounded-md text-xs font-bold bg-primary-50 text-primary-700">${p.project_code}</span>` : ''}
+            ${badge(p.status)}
+            ${p.project_type ? `<span class="text-xs text-gray-500">${p.project_type}</span>` : ''}
+          </div>
+          <h2 class="text-2xl font-bold text-gray-900 mt-1">${p.name}</h2>
+          <p class="text-sm text-gray-500">${customers[p.customer_id] || 'No client'} · ${(p.billing_type || '').replace(/_/g, ' ')}</p>
         </div>
-        ${badge(p.status)}
+        <div class="flex gap-2">
+          <a href="/projects/${PROJECT_ID}/edit" class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50"><i class="fas fa-pen mr-1"></i>Edit</a>
+          <button onclick="openPdf('/api/projects/${PROJECT_ID}/brd.pdf')" class="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50"><i class="fas fa-file-lines mr-1"></i>BRD PDF</button>
+        </div>
       </div>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 text-sm">
-        <div><p class="text-gray-400 text-xs uppercase">Budget</p><p class="font-semibold">${p.budget ? RMONEY(p.budget) : '—'}</p></div>
-        <div><p class="text-gray-400 text-xs uppercase">Bill rate</p><p class="font-semibold">${p.billing_rate ? RMONEY(p.billing_rate) + '/h' : 'rate card'}</p></div>
+      ${p.system_name ? `<p class="text-sm text-gray-600 mt-2"><span class="text-gray-400">System:</span> ${p.system_name}</p>` : ''}
+      ${tech ? `<div class="flex flex-wrap gap-1 mt-2">${tech}</div>` : ''}
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5 text-sm">
+        <div><p class="text-gray-400 text-xs uppercase">Est. cost</p><p class="font-semibold">${p.estimated_cost != null ? RMONEY(p.estimated_cost) : '—'}</p></div>
+        <div><p class="text-gray-400 text-xs uppercase">Est. hours</p><p class="font-semibold">${p.estimated_hours != null ? p.estimated_hours + 'h' : '—'}</p></div>
         <div><p class="text-gray-400 text-xs uppercase">Start</p><p class="font-semibold">${p.start_date || '—'}</p></div>
         <div><p class="text-gray-400 text-xs uppercase">End</p><p class="font-semibold">${p.end_date || '—'}</p></div>
-      </div>`;
+      </div>
+      ${(p.repository_url || p.live_url) ? `<div class="flex gap-4 mt-3 text-sm">${p.repository_url ? `<a href="${p.repository_url}" target="_blank" class="text-primary-600 hover:underline"><i class="fab fa-github mr-1"></i>Repository</a>` : ''}${p.live_url ? `<a href="${p.live_url}" target="_blank" class="text-primary-600 hover:underline"><i class="fas fa-globe mr-1"></i>Live</a>` : ''}</div>` : ''}`;
   }
 
   async function loadMetrics() {

@@ -196,7 +196,11 @@ function renderTable(containerId, list, title) {
     }
 
     const firstItem = list[0];
-    const columns = Object.keys(firstItem).slice(0, 5);
+    // Hide opaque UUIDs from the user — never show `id` or `*_id` columns.
+    const HIDDEN = new Set(['id', 'created_at', 'updated_at']);
+    const columns = Object.keys(firstItem)
+        .filter(k => !HIDDEN.has(k) && !k.endsWith('_id'))
+        .slice(0, 6);
     
     // Header Generation
     let headers = columns.map(c => 
@@ -686,7 +690,8 @@ const VIEW_SCHEMAS = {
 };
 
 window.openCreateModal = function(viewKey) {
-    // Redirect to dedicated create page
+    // Projects have a dedicated rich configuration form.
+    if (viewKey === 'projects') { window.location.href = '/projects/new'; return; }
     window.location.href = `/create/${viewKey}`;
 };
 

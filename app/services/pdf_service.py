@@ -523,3 +523,78 @@ def pmn_pdf(doc_id):
     f = _footer(iss, pd.doc_ref)
     doc.build(el, onFirstPage=f, onLaterPages=f)
     return buf.getvalue(), pd.doc_ref
+
+
+# ---------------------------------------------------------------- BRD / SCOPE
+
+def brd_pdf(project_id):
+    project = db.session.get(Project, project_id)
+    if project is None:
+        return None, None
+    iss = _issuer(); sym = iss['symbol']; st = _styles()
+    customer = db.session.get(Customer, project.customer_id) if project.customer_id else None
+    phases = ProjectPhase.query.filter_by(project_id=project.id).order_by(ProjectPhase.number).all()
+    milestones = Milestone.query.filter_by(project_id=project.id).order_by(Milestone.sequence).all()
+    ref = project.contract_ref or ((project.project_code + ' BRD') if project.project_code else 'BRD')
+
+    buf, doc = _doc(ref, 'Business Requirements Document')
+    el = []
+    _banner(el, st, 'BUSINESS REQUIREMENTS DOCUMENT', NAVY)
+    el += [Spacer(1, 4), Paragraph(f"<b>{project.system_name or project.name}</b>",
+                                   ParagraphStyle('pt', fontSize=13, textColor=NAVY)),
+           Paragraph(ref + (f" · {project.project_type}" if project.project_type else ''), st['small']), Spacer(1, 6)]
+
+    over = [Paragraph(f"<b>{project.system_name or project.name}</b>", st['cell'])]
+    if project.project_type:
+        over.append(Paragraph(f"Type: {project.project_type}", st['cell']))
+    if project.project_code:
+        over.append(Paragraph(f"Project code: {project.project_code}", st['cell']))
+    top = Table([[_kv_block(st, 'PREPARED BY', _issuer_lines(st, iss)),
+                  _kv_block(st, 'FOR', _client_lines(st, customer)),
+                  _kv_block(st, 'PROJECT', over)]], colWidths=[58 * mm, 58 * mm, 58 * mm])
+    top.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP'), ('LEFTPADDING', (0, 0), (-1, -1), 2)]))
+    el += [top]
+
+    if project.scope:
+        _section(el, st, '1. SCOPE OF WORK')
+        for para in str(project.scope).split('\n'):
+            if para.strip():
+                el += [Paragraph(para.strip(), st['body'])]
+
+    stack = [t.strip() for t in (project.tech_stack or '').split(',') if t.strip()]
+    if stack:
+        _section(el, st, '2. TECHNOLOGY STACK')
+        el += [Paragraph(' · '.join(stack), st['body'])]
+
+    if phases:
+        _section(el, st, '3. PHASES & DELIVERABLES')
+        for ph in phases:
+            ptitle = f"Phase {ph.number} of {ph.total_phases} — {ph.title}" if ph.number else ph.title
+            el += [Spacer(1, 4), Paragraph(f"<b>{ptitle}</b>" + (f"  ({_money(sym, ph.phase_value)})" if ph.phase_value is not None else ''), st['body'])]
+            if ph.gate_criteria:
+                el += [Paragraph(f"<i>Gate: {ph.gate_criteria}</i>", st['small'])]
+            for d in PhaseDeliverable.query.filter_by(phase_id=ph.id).order_by(PhaseDeliverable.sequence).all():
+                el += [Paragraph(f"• <b>{d.name}</b> — {d.implementation or ''}", st['cell'])]
+
+    if milestones:
+        _section(el, st, '4. PAYMENT SCHEDULE')
+        el += [_schedule_table(st, sym, milestones)]
+
+    _section(el, st, '5. ESTIMATES')
+    est = []
+    if project.estimated_cost is not None:
+        est.append(f"Estimated cost: {_money(sym, project.estimated_cost)}")
+    if project.estimated_hours is not None:
+        est.append(f"Estimated effort: {float(project.estimated_hours):g} hours")
+    if project.contract_value is not None:
+        est.append(f"Contract value: {_money(sym, project.contract_value)}")
+    el += [Paragraph(' · '.join(est) if est else 'To be determined.', st['body'])]
+
+    _section(el, st, 'ACCEPTANCE')
+    el += [Paragraph(f"By signing below, {customer.company_name if customer else 'the Client'} approves the scope, "
+                     f"phases and estimates set out in this document.", st['body'])]
+    _signatures(el, st, customer.company_name if customer else 'Client', iss)
+
+    f = _footer(iss, ref)
+    doc.build(el, onFirstPage=f, onLaterPages=f)
+    return buf.getvalue(), ref

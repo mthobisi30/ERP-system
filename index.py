@@ -185,6 +185,16 @@ def retainers_page():
 def reports_page():
     return render_template('reports.html', title='Reports & Analytics', active_view='reports', api_endpoint='', view_key='')
 
+@app.route('/projects/new')
+def project_new_page():
+    return render_template('project_form.html', title='New Project', active_view='projects',
+                           api_endpoint='', view_key='', project_id='')
+
+@app.route('/projects/<project_id>/edit')
+def project_edit_page(project_id):
+    return render_template('project_form.html', title='Edit Project', active_view='projects',
+                           api_endpoint='', view_key='', project_id=project_id)
+
 @app.route('/projects/<project_id>')
 def project_detail_page(project_id):
     return render_template('project_detail.html', title='Project', active_view='projects',
