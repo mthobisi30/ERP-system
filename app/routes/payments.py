@@ -7,6 +7,7 @@ from flask_jwt_extended import jwt_required
 
 from config.database import db
 from app.models.accounting import Payment, Invoice
+from app.services.activity import record
 
 payments_bp = Blueprint('payments', __name__)
 
@@ -68,6 +69,10 @@ def create_payment():
         db.session.rollback()
         return jsonify({'error': 'Could not record payment', 'detail': str(exc)}), 400
 
+    record('payment.recorded', 'payment', payment.id,
+           project_id=(invoice.project_id if invoice else None), customer_id=payment.customer_id,
+           summary=f"Payment {payment.payment_number} — {float(payment.amount or 0):,.2f}"
+                   + (f" against {invoice.invoice_number}" if invoice else ""))
     result = {'message': 'Payment recorded', 'payment': payment.to_dict()}
     if invoice is not None:
         result['invoice'] = invoice.to_dict()

@@ -39,6 +39,11 @@
       <div id="c-retainers" class="p-2"></div>
     </div>
   </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100"><h3 class="font-semibold text-gray-900"><i class="fas fa-clock-rotate-left text-primary-500 mr-2"></i>Activity Trail</h3></div>
+    <div id="c-activity" class="p-5"></div>
+  </div>
 </div>
 {% endblock %}
 
@@ -54,11 +59,11 @@
   const row = inner => `<div class="flex items-center justify-between px-4 py-2 border-b border-gray-50 last:border-0 text-sm">${inner}</div>`;
 
   async function load() {
-    const [cust, projects, invoices, quotes, payments, retainers, tickets] = await Promise.all([
+    const [cust, projects, invoices, quotes, payments, retainers, tickets, activity] = await Promise.all([
       fetchData(`/customers/${CUSTOMER_ID}`), fetchData(`/projects?customer_id=${CUSTOMER_ID}&per_page=100`),
       fetchData(`/invoices?customer_id=${CUSTOMER_ID}`), fetchData(`/sales/quotations?customer_id=${CUSTOMER_ID}`),
       fetchData(`/payments?customer_id=${CUSTOMER_ID}`), fetchData(`/retainers?customer_id=${CUSTOMER_ID}`),
-      fetchData(`/tickets?customer_id=${CUSTOMER_ID}`),
+      fetchData(`/tickets?customer_id=${CUSTOMER_ID}`), fetchData(`/customers/${CUSTOMER_ID}/activity`),
     ]);
     if (!cust) { document.getElementById('client-head').innerHTML = '<p class="text-red-500 text-sm">Client not found.</p>'; return; }
     document.title = `Rephina Software ERP | ${cust.company_name || 'Client'}`;
@@ -103,6 +108,14 @@
 
     document.getElementById('c-retainers').innerHTML = ((retainers && retainers.retainers) || []).map(r =>
       row(`<span>${r.name} <span class="text-gray-500">${RMONEY(r.monthly_fee)}/mo</span></span>${badge(r.status)}`)).join('') || empty('No retainers.');
+
+    const acts = (activity && activity.activity) || [];
+    document.getElementById('c-activity').innerHTML = acts.length
+      ? `<ol class="relative border-l border-gray-200 ml-2">${acts.map(a => `
+          <li class="ml-4 mb-4 last:mb-0"><div class="absolute w-2 h-2 bg-primary-500 rounded-full -left-1 mt-1.5"></div>
+          <p class="text-sm text-gray-800">${a.summary || a.action}</p>
+          <p class="text-xs text-gray-400">${a.created_at ? new Date(a.created_at).toLocaleString() : ''}</p></li>`).join('')}</ol>`
+      : '<p class="text-sm text-gray-400">No activity yet.</p>';
   }
   load();
 </script>

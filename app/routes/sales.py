@@ -7,6 +7,7 @@ from config.database import db
 from app.models.sales import SalesOrder, Quotation, QuotationItem
 from app.models.project import Project
 from app.services.pdf_service import quote_pdf
+from app.services.activity import record
 
 sales_bp = Blueprint('sales', __name__)
 
@@ -161,5 +162,7 @@ def accept_quotation(quote_id):
     except Exception as exc:  # noqa: BLE001
         db.session.rollback()
         return jsonify({'error': 'Could not accept quote', 'detail': str(exc)}), 400
+    record('quote.accepted', 'project', project.id, project_id=project.id, customer_id=project.customer_id,
+           summary=f"Quote {quote.quote_number} accepted → project {project.name}")
     return jsonify({'message': 'Quote accepted', 'quote': quote.to_dict(),
                     'project': project.to_dict()}), 201

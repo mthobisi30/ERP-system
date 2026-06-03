@@ -6,6 +6,7 @@ from flask_jwt_extended import jwt_required
 
 from config.database import db
 from app.models.ticket import Ticket, TicketResponse
+from app.services.activity import record
 
 tickets_bp = Blueprint('tickets', __name__)
 
@@ -53,6 +54,8 @@ def create_ticket():
     except Exception as exc:  # noqa: BLE001
         db.session.rollback()
         return jsonify({'error': 'Could not create ticket', 'detail': str(exc)}), 400
+    record('ticket.created', 'ticket', ticket.id, project_id=ticket.project_id,
+           customer_id=ticket.customer_id, summary=f"Ticket {ticket.ticket_number} opened: {ticket.subject}")
     return jsonify(ticket.to_dict()), 201
 
 

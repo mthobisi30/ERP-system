@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from config.database import db
 from app.models.customer import Customer
+from app.models.log import ActivityLog
 from app.utils.codes import next_customer_code
 
 customers_bp = Blueprint('customers', __name__)
@@ -63,3 +64,10 @@ def delete_customer(customer_id):
     db.session.delete(customer)
     db.session.commit()
     return jsonify({'message': 'Customer deleted'}), 200
+
+@customers_bp.route('/<customer_id>/activity', methods=['GET'])
+@jwt_required()
+def customer_activity(customer_id):
+    logs = (ActivityLog.query.filter_by(customer_id=customer_id)
+            .order_by(ActivityLog.created_at.desc()).limit(100).all())
+    return jsonify({'activity': [l.to_dict() for l in logs]}), 200

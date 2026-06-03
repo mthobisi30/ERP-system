@@ -4,6 +4,7 @@ from flask_jwt_extended import jwt_required
 from config.database import db
 from app.models.customer import Opportunity
 from app.models.project import Project
+from app.services.activity import record
 
 opportunities_bp = Blueprint('opportunities', __name__)
 
@@ -73,4 +74,6 @@ def convert_to_project(opp_id):
     except Exception as exc:  # noqa: BLE001
         db.session.rollback()
         return jsonify({'error': 'Could not convert opportunity', 'detail': str(exc)}), 400
+    record('opportunity.converted', 'project', project.id, project_id=project.id,
+           customer_id=project.customer_id, summary=f"Opportunity '{opp.name}' converted → project {project.name}")
     return jsonify({'message': 'Opportunity converted to project', 'project': project.to_dict()}), 201

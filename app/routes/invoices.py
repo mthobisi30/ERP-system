@@ -9,6 +9,7 @@ from config.database import db
 from app.models.accounting import Invoice, InvoiceItem
 from app.services.billing_service import generate_invoice_from_unbilled_time, _next_invoice_number
 from app.services.pdf_service import invoice_pdf
+from app.services.activity import record
 
 invoices_bp = Blueprint('invoices', __name__)
 
@@ -84,6 +85,9 @@ def generate_from_time():
         db.session.rollback()
         return jsonify({'error': 'Could not generate invoice', 'detail': str(exc)}), 400
     items = InvoiceItem.query.filter_by(invoice_id=invoice.id).all()
+    record('invoice.generated', 'invoice', invoice.id, project_id=invoice.project_id,
+           customer_id=invoice.customer_id,
+           summary=f"Invoice {invoice.invoice_number} generated — {invoice.currency} {float(invoice.total_amount or 0):,.2f}")
     return jsonify({
         'message': 'Invoice generated from unbilled time',
         'invoice': invoice.to_dict(),

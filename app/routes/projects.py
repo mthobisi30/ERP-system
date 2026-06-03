@@ -9,8 +9,10 @@ from app.models.projectdoc import ProjectDocument, DOC_TYPES
 from app.models.schedule import TimeEntry
 from app.models.settings import CompanySettings
 from app.models.customer import Customer
+from app.models.log import ActivityLog
 from app.utils.codes import next_project_code
 from app.services import pdf_service
+from app.services.activity import record
 
 projects_bp = Blueprint('projects', __name__)
 
@@ -89,6 +91,8 @@ def create_project():
     except Exception as exc:  # noqa: BLE001
         db.session.rollback()
         return jsonify({'error': 'Could not create project', 'detail': str(exc)}), 400
+    record('project.created', 'project', project.id, project_id=project.id,
+           customer_id=project.customer_id, summary=f"Project {project.project_code or project.name} created")
     return jsonify(project.to_dict()), 201
 
 @projects_bp.route('/<project_id>', methods=['GET'])
@@ -135,6 +139,7 @@ def create_milestone(project_id):
             setattr(m, k, data[k])
     db.session.add(m)
     db.session.commit()
+    record('milestone.added', 'milestone', m.id, project_id=project_id, summary=f"Payment line '{m.name}' added")
     return jsonify(m.to_dict()), 201
 
 @projects_bp.route('/milestones/<milestone_id>', methods=['PUT'])
@@ -180,6 +185,7 @@ def create_phase(project_id):
             setattr(ph, k, data[k])
     db.session.add(ph)
     db.session.commit()
+    record('phase.added', 'phase', ph.id, project_id=project_id, summary=f"Phase added: {ph.title}")
     return jsonify(ph.to_dict(with_deliverables=True)), 201
 
 @projects_bp.route('/phases/<phase_id>', methods=['PUT'])
@@ -260,6 +266,8 @@ def create_document(project_id):
     except Exception as exc:  # noqa: BLE001
         db.session.rollback()
         return jsonify({'error': 'Could not create document', 'detail': str(exc)}), 400
+    record(f'document.{doc_type.lower()}', 'document', doc.id, project_id=project_id,
+           summary=f"{doc.doc_ref} ({DOC_TYPES.get(doc_type, doc_type)}) generated")
     return jsonify(doc.to_dict()), 201
 
 @projects_bp.route('/documents/<doc_id>/pdf', methods=['GET'])
@@ -281,6 +289,13 @@ def phase_report_pdf(phase_id):
 @jwt_required()
 def project_brd_pdf(project_id):
     return _pdf_response(*pdf_service.brd_pdf(project_id))
+
+@projects_bp.route('/<project_id>/activity', methods=['GET'])
+@jwt_required()
+def project_activity(project_id):
+    logs = (ActivityLog.query.filter_by(project_id=project_id)
+            .order_by(ActivityLog.created_at.desc()).limit(100).all())
+    return jsonify({'activity': [l.to_dict() for l in logs]}), 200
 
 # ---- Sprints ----
 
