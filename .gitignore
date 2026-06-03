@@ -42,3 +42,6 @@ htmlcov/
 
 # Reference client documents (contain banking proof + client PII) — keep local only
 docs/
+
+# Data seed scripts containing real banking details / client PII — keep local only
+scripts/seed_mpia.py
