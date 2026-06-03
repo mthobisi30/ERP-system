@@ -1,6 +1,7 @@
 """User Management Routes."""
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_bcrypt import generate_password_hash
 
 from config.database import db
 from app.models.user import User
@@ -26,6 +27,38 @@ def get_users():
         'pages': users.pages,
         'current_page': users.page
     }), 200
+
+
+@users_bp.route('', methods=['POST'])
+@admin_required
+def create_user():
+    """Admin-provisioned user (with role + password)."""
+    data = request.get_json() or {}
+    for field in ('email', 'username', 'password'):
+        if not data.get(field):
+            return jsonify({'error': f'{field} is required'}), 400
+    if User.query.filter_by(email=data['email']).first():
+        return jsonify({'error': 'Email already exists'}), 400
+    role = data.get('role', 'employee')
+    if role not in ('employee', 'manager', 'admin'):
+        return jsonify({'error': 'Invalid role'}), 400
+    user = User(
+        email=data['email'],
+        username=data['username'],
+        password_hash=generate_password_hash(data['password']).decode('utf-8'),
+        first_name=data.get('first_name'),
+        last_name=data.get('last_name'),
+        role=role,
+        position=data.get('position'),
+        is_active=True,
+    )
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        return jsonify({'error': 'Could not create user', 'detail': str(exc)}), 400
+    return jsonify(user.to_dict()), 201
 
 
 @users_bp.route('/<user_id>', methods=['GET'])

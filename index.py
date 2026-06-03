@@ -23,6 +23,27 @@ from config.config import config as config_map
 config_env = os.getenv('FLASK_ENV', 'production' if os.getenv('DEBUG', '0') != '1' else 'development')
 app.config.from_object(config_map.get(config_env, config_map['default']))
 
+
+def _check_production_config(application):
+    """Warn loudly about insecure defaults when running outside debug."""
+    if application.config.get('DEBUG'):
+        return
+    issues = []
+    if str(application.config.get('SECRET_KEY', '')).startswith('dev-'):
+        issues.append('SECRET_KEY is an insecure default — set a strong SECRET_KEY.')
+    if str(application.config.get('JWT_SECRET_KEY', '')).startswith('dev-'):
+        issues.append('JWT_SECRET_KEY is an insecure default — set a strong JWT_SECRET_KEY.')
+    db_url = application.config.get('SQLALCHEMY_DATABASE_URI') or ''
+    if not db_url or 'user:password@host' in db_url:
+        issues.append('DATABASE_URL is not configured (still the placeholder).')
+    if application.config.get('CORS_ORIGINS') == '*':
+        issues.append('CORS_ORIGINS is "*" — restrict to your domain(s) in production.')
+    for issue in issues:
+        print(f"[CONFIG WARNING] {issue}")
+
+
+_check_production_config(app)
+
 # Initialize extensions
 CORS(app, resources={r"/api/*": {"origins": app.config['CORS_ORIGINS'].split(',')}})
 jwt = JWTManager(app)
@@ -64,6 +85,10 @@ from app.routes.notifications import notifications_bp
 from app.routes.documents import documents_bp
 from app.routes.settings import settings_bp
 from app.routes.logs import logs_bp
+from app.routes.blog import blog_bp
+from app.routes.enquiries import enquiries_bp
+from app.routes.modules import modules_bp
+from app.routes.public import public_bp
 
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -91,6 +116,10 @@ app.register_blueprint(notifications_bp, url_prefix='/api/notifications')
 app.register_blueprint(documents_bp, url_prefix='/api/documents')
 app.register_blueprint(settings_bp, url_prefix='/api/settings')
 app.register_blueprint(logs_bp, url_prefix='/api/logs')
+app.register_blueprint(blog_bp, url_prefix='/api/blog')
+app.register_blueprint(enquiries_bp, url_prefix='/api/enquiries')
+app.register_blueprint(modules_bp, url_prefix='/api/modules')
+app.register_blueprint(public_bp, url_prefix='/api/public')
 
 # Error handlers
 @app.errorhandler(404)
@@ -169,6 +198,22 @@ def quotations_page():
 def board_page():
     return render_template('board.html', title='Task Board', active_view='board', api_endpoint='', view_key='')
 
+@app.route('/blog')
+def blog_page():
+    return render_template('blog.html', title='Blog', active_view='blog', api_endpoint='', view_key='')
+
+@app.route('/enquiries')
+def enquiries_page():
+    return render_template('enquiries.html', title='Enquiries', active_view='enquiries', api_endpoint='', view_key='')
+
+@app.route('/modules')
+def modules_page():
+    return render_template('modules.html', title='Modules', active_view='modules', api_endpoint='', view_key='')
+
+@app.route('/users')
+def users_page():
+    return render_template('users.html', title='System Users', active_view='users', api_endpoint='', view_key='')
+
 # Generic route for all list views
 @app.route('/<view_name>')
 def list_view(view_name):
@@ -192,7 +237,6 @@ def list_view(view_name):
         'attendance': {'title': 'Attendance', 'endpoint': '/hr/attendance', 'key': 'attendance'},
         'leaves': {'title': 'Leaves', 'endpoint': '/hr/leaves', 'key': 'leaves'},
         'performance': {'title': 'Performance', 'endpoint': '/hr/performance-reviews', 'key': 'reviews'},
-        'users': {'title': 'Users', 'endpoint': '/users', 'key': 'users'},
         'time-tracking': {'title': 'Time Tracking', 'endpoint': '/time-tracking', 'key': 'entries'},
         'tickets': {'title': 'Tickets', 'endpoint': '/tickets', 'key': 'tickets'},
         'notifications': {'title': 'Notifications', 'endpoint': '/notifications', 'key': 'notifications'},

@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6">
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+    <h2 class="text-lg font-semibold text-gray-900"><i class="fas fa-toggle-on text-primary-500 mr-2"></i>Modules</h2>
+    <p class="text-sm text-gray-500 mt-1">Turn ERP modules on or off. Disabled modules are hidden from the sidebar. Core modules can't be disabled. (Admin only)</p>
+  </div>
+  <div id="groups" class="space-y-6"><div class="bg-white rounded-2xl border border-gray-200 p-8 text-center text-gray-400 text-sm">Loading…</div></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  async function load() {
+    const data = await fetchData('/modules');
+    const mods = (data && data.modules) || [];
+    const groups = {};
+    mods.forEach(m => { (groups[m.category || 'Other'] = groups[m.category || 'Other'] || []).push(m); });
+    const el = document.getElementById('groups');
+    el.innerHTML = Object.keys(groups).map(cat => `
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-3 border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">${cat}</div>
+        <div class="divide-y divide-gray-100">
+          ${groups[cat].map(m => `
+            <div class="flex items-center justify-between px-6 py-3">
+              <div>
+                <p class="text-sm font-medium text-gray-900">${m.label} ${m.is_core ? '<span class="ml-1 text-[10px] text-gray-400 uppercase">core</span>' : ''}</p>
+                <p class="text-xs text-gray-400">${m.key}</p>
+              </div>
+              <label class="relative inline-flex items-center ${m.is_core ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}">
+                <input type="checkbox" class="sr-only peer" ${m.enabled ? 'checked' : ''} ${m.is_core ? 'disabled' : ''}
+                       onchange="toggle('${m.key}', this.checked, this)">
+                <div class="w-12 h-6 bg-gray-200 rounded-full peer peer-checked:bg-accent-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-6"></div>
+              </label>
+            </div>`).join('')}
+        </div>
+      </div>`).join('');
+  }
+
+  window.toggle = async function (key, enabled, input) {
+    try {
+      await apiFetch(`/modules/${key}`, { method: 'PUT', body: JSON.stringify({ enabled }) });
+      showToast(`${key} ${enabled ? 'enabled' : 'disabled'}`, 'success');
+    } catch (e) { input.checked = !enabled; }  // revert on failure
+  };
+
+  load();
+</script>
+{% endblock %}
