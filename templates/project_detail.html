@@ -176,7 +176,11 @@
       ${p.system_name ? `<p class="text-sm text-gray-600 mt-2"><span class="text-gray-400">System:</span> ${p.system_name}</p>` : ''}
       ${tech ? `<div class="flex flex-wrap gap-1 mt-2">${tech}</div>` : ''}
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5 text-sm">
+        <div><p class="text-gray-400 text-xs uppercase">Contract value</p><p class="font-semibold">${p.contract_value != null ? RMONEY(p.contract_value) : '—'}</p></div>
+        <div><p class="text-gray-400 text-xs uppercase">Budget</p><p class="font-semibold">${p.budget != null ? RMONEY(p.budget) : '—'}</p></div>
         <div><p class="text-gray-400 text-xs uppercase">Est. cost</p><p class="font-semibold">${p.estimated_cost != null ? RMONEY(p.estimated_cost) : '—'}</p></div>
+        <div><p class="text-gray-400 text-xs uppercase">Actual cost</p><p class="font-semibold">${p.actual_cost != null ? RMONEY(p.actual_cost) : '—'}</p></div>
+        <div><p class="text-gray-400 text-xs uppercase">Billing</p><p class="font-semibold">${(p.billing_type || '').replace(/_/g, ' ') || '—'}${p.billing_rate != null ? ' · ' + RMONEY(p.billing_rate) + '/h' : ''}</p></div>
         <div><p class="text-gray-400 text-xs uppercase">Est. hours</p><p class="font-semibold">${p.estimated_hours != null ? p.estimated_hours + 'h' : '—'}</p></div>
         <div><p class="text-gray-400 text-xs uppercase">Start</p><p class="font-semibold">${p.start_date || '—'}</p></div>
         <div><p class="text-gray-400 text-xs uppercase">End</p><p class="font-semibold">${p.end_date || '—'}</p></div>

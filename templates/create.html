@@ -29,7 +29,9 @@
         </form>
     </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
 const VIEW_SCHEMAS = {
     'tasks': { title: 'Task', fields: [ {id: 'title', label: 'Task Title', required: true}, {id: 'project_id', label: 'Project', type: 'rel', rel: 'projects'}, {id: 'description', label: 'Description', type: 'textarea'}, {id: 'status', label: 'Status', type: 'select', options: ['todo', 'in_progress', 'done']}, {id: 'priority', label: 'Priority', type: 'select', options: ['low', 'medium', 'high', 'urgent']}, {id: 'due_date', label: 'Due Date', type: 'date'} ] },
@@ -50,7 +52,7 @@ const REL = {
 };
 
 const VIEW_NAME = '{{ view_name }}';
-const API_BASE = '/api';
+// API_BASE, fetchData, getHeaders come from app.js (loaded before this block).
 
 document.addEventListener('DOMContentLoaded', function() {
     const schema = VIEW_SCHEMAS[VIEW_NAME] || { title: VIEW_NAME, fields: [{id: 'name', label: 'Name', required: true}] };
