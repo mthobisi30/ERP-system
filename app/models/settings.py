@@ -16,6 +16,7 @@ class CompanySettings(db.Model):
     # --- Issuer / letterhead (drives generated documents) ---
     legal_name = db.Column(db.String(250))            # e.g. "Rephina Software Solutions (PTY) LTD"
     registration_number = db.Column(db.String(60))    # e.g. "2026/250285/07"
+    tax_number = db.Column(db.String(60))             # SARS income tax reference no.
     signatory_name = db.Column(db.String(150))        # who signs documents
     address = db.Column(db.Text)                       # full postal/physical address
     website = db.Column(db.String(200))
@@ -37,6 +38,7 @@ class CompanySettings(db.Model):
             'company_name': self.company_name,
             'legal_name': self.legal_name,
             'registration_number': self.registration_number,
+            'tax_number': self.tax_number,
             'signatory_name': self.signatory_name,
             'email': self.email,
             'phone': self.phone,

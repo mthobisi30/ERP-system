@@ -73,7 +73,7 @@ def _issuer():
     base = {
         'legal_name': cfg.get('COMPANY_NAME', 'Company'),
         'name': cfg.get('COMPANY_NAME', 'Company'),
-        'reg': '', 'signatory': '', 'address': '',
+        'reg': '', 'tax_number': '', 'signatory': '', 'address': '',
         'email': cfg.get('COMPANY_EMAIL', ''), 'phone': '',
         'website': cfg.get('COMPANY_WEBSITE', ''),
         'vat_registered': cfg.get('VAT_ENABLED', True), 'vat_number': cfg.get('VAT_REGISTRATION_NUMBER', ''),
@@ -85,7 +85,8 @@ def _issuer():
         base.update({
             'legal_name': s.legal_name or s.company_name or base['legal_name'],
             'name': s.company_name or base['name'],
-            'reg': s.registration_number or '', 'signatory': s.signatory_name or '',
+            'reg': s.registration_number or '', 'tax_number': s.tax_number or '',
+            'signatory': s.signatory_name or '',
             'address': s.address or '', 'email': s.email or base['email'],
             'phone': s.phone or '', 'website': s.website or base['website'],
             'vat_registered': s.vat_registered, 'vat_number': s.vat_number or '',
@@ -162,7 +163,8 @@ def _draw_footer(c, iss, ref, page, total):
     c.setStrokeColor(LINE); c.setLineWidth(0.6); c.line(x0, 16 * mm, x1, 16 * mm)
 
     c.setFont('Helvetica', 7.5); c.setFillColor(GREY)
-    ident = '  ·  '.join(b for b in [iss['legal_name'], (f"Reg {iss['reg']}" if iss['reg'] else '')] if b)
+    ident = '  ·  '.join(b for b in [iss['legal_name'], (f"Reg {iss['reg']}" if iss['reg'] else ''),
+                                     (f"Tax {iss['tax_number']}" if iss['tax_number'] else '')] if b)
     c.drawCentredString(pw / 2, 11.6 * mm, ident)
     contact = '  ·  '.join(b for b in [(iss['address'] or '').replace('\n', ', '),
                                        _site(iss['website']), iss['email'], iss['phone']] if b)
@@ -286,6 +288,8 @@ def _issuer_lines(st, iss, compact=False):
     lines = [Paragraph(f"<b>{iss['legal_name']}</b>", st['cell'])]
     if iss['reg']:
         lines.append(Paragraph(f"Reg. No. {iss['reg']}", st['cell']))
+    if iss['tax_number']:
+        lines.append(Paragraph(f"Tax No. {iss['tax_number']}", st['cell']))
     if not compact:
         if iss['address']:
             lines.append(Paragraph(iss['address'].replace('\n', ', '), st['cell']))
